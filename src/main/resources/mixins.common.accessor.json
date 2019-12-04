@@ -15,6 +15,8 @@
         "block.BlockAccessor",
         "block.FireBlockAccessor",
         "block.RedstoneWireBlockAccessor",
+        "brigadier.context.CommandContextAccessor",
+        "brigadier.tree.CommandNodeAccessor",
         "crash.CrashReportAccessor",
         "crash.CrashReportCategoryAccessor",
         "entity.AgeableEntityAccessor",
