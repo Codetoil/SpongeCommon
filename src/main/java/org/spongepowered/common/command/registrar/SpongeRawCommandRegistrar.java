@@ -111,7 +111,7 @@ public class SpongeRawCommandRegistrar extends SpongeCommandRegistrar<Command> {
         }
 
         @Override
-        public String parse(StringReader reader) throws CommandSyntaxException {
+        public String parse(StringReader reader) {
             return reader.getRemaining();
         }
 

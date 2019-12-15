@@ -49,12 +49,7 @@ public abstract class CommandsMixin {
             CommandNode<ISuggestionProvider> rootSuggestion, CommandSource source,
             Map<CommandNode<CommandSource>, CommandNode<ISuggestionProvider>> commandNodeToSuggestionNode);
 
-    /**
-     * @author dualspiral, 30th November, 2019
-     * @reason We augment the CommandDispatcher with our own methods
-     *         using a wrapper, so we need to make sure it's replaced
-     *         here.
-     */
+    // We augment the CommandDispatcher with our own methods using a wrapper, so we need to make sure it's replaced here.
     @Redirect(method = "<init>", at = @At(
             value = "NEW",
             args = "class=com/mojang/brigadier/CommandDispatcher"
@@ -63,13 +58,10 @@ public abstract class CommandsMixin {
         return VanillaCommandRegistrar.INSTANCE;
     }
 
-    /**
-     * @author dualspiral, 30th November, 2019
-     * @reason We redirect to our own command manager, which might return to the dispatcher.
-     */
+    // We redirect to our own command manager, which might return to the dispatcher.
     @Redirect(method = "handleCommand", at = @At(value = "INVOKE",
             target = "Lcom/mojang/brigadier/CommandDispatcher;execute(Lcom/mojang/brigadier/StringReader;Ljava/lang/Object;)I"))
-    private int impl$redirectExecuteCall(CommandDispatcher commandDispatcher, StringReader input, Object source) {
+    private int impl$redirectExecuteCall(CommandDispatcher<?> commandDispatcher, StringReader input, Object source) {
         // We know that the object type will be ICommandSource
         ICommandSource commandSource = (ICommandSource) source;
         try (CauseStackManager.StackFrame frame = Sponge.getCauseStackManager().pushCauseFrame()) {
