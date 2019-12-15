@@ -22,35 +22,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.spongepowered.common.command.registrar;
+package org.spongepowered.common.command.registrar.tree;
 
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import org.spongepowered.api.CatalogKey;
-import org.spongepowered.api.command.Command;
-import org.spongepowered.api.command.CommandCause;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.spongepowered.api.command.registrar.tree.ClientCompletionKey;
 import org.spongepowered.api.command.registrar.tree.CommandTreeBuilder;
-import org.spongepowered.common.SpongeImpl;
 
-/**
- * For use with {@link org.spongepowered.api.command.Command.Parameterized}
- */
-public class SpongeManagedCommandRegistrar extends SpongeCommandRegistrar<Command.Parameterized> {
+public abstract class AmountCommandTreeBuilder<T extends CommandTreeBuilder<T>>
+        extends AbstractCommandTreeBuilder<T> implements CommandTreeBuilder.AmountBase<T> {
 
-    public static final CatalogKey CATALOG_KEY = CatalogKey.builder().namespace(SpongeImpl.getSpongePlugin()).value("managed").build();
-    public static final SpongeManagedCommandRegistrar INSTANCE = new SpongeManagedCommandRegistrar(CATALOG_KEY);
+    private static final String AMOUNT_KEY = "amount";
 
-    private SpongeManagedCommandRegistrar(CatalogKey catalogKey) {
-        super(catalogKey);
+    private static final String AMOUNT_SINGLE = "single";
+    private static final String AMOUNT_MULTIPLE = "multiple";
+
+    public AmountCommandTreeBuilder(@Nullable ClientCompletionKey<T> parameterType) {
+        super(parameterType);
+        this.addProperty(AMOUNT_KEY, AMOUNT_MULTIPLE);
     }
 
     @Override
-    LiteralArgumentBuilder<CommandCause> createNode(String primaryAlias, Command.Parameterized command) {
-        return null;
+    public T single() {
+        return this.addProperty(AMOUNT_KEY, AMOUNT_SINGLE);
     }
 
-    @Override
-    public void completeCommandTree(CommandTreeBuilder builder) {
-        // TODO
+    // Avoids recursive generics.
+    public static class Concrete extends AmountCommandTreeBuilder<CommandTreeBuilder.Amount> implements CommandTreeBuilder.Amount {
+
+        public Concrete(@Nullable ClientCompletionKey<Amount> parameterType) {
+            super(parameterType);
+        }
+
     }
 
 }

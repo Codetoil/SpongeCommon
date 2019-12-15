@@ -39,7 +39,7 @@ import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.exception.CommandException;
 import org.spongepowered.api.command.manager.CommandMapping;
 import org.spongepowered.api.command.registrar.CommandRegistrar;
-import org.spongepowered.api.command.registrar.CommandTreeBuilder;
+import org.spongepowered.api.command.registrar.tree.CommandTreeBuilder;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.common.SpongeImpl;

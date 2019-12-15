@@ -22,35 +22,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.spongepowered.common.command.registrar;
+package org.spongepowered.common.command.registrar.tree;
 
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import org.spongepowered.api.CatalogKey;
-import org.spongepowered.api.command.Command;
-import org.spongepowered.api.command.CommandCause;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.spongepowered.api.command.registrar.tree.ClientCompletionKey;
 import org.spongepowered.api.command.registrar.tree.CommandTreeBuilder;
-import org.spongepowered.common.SpongeImpl;
 
-/**
- * For use with {@link org.spongepowered.api.command.Command.Parameterized}
- */
-public class SpongeManagedCommandRegistrar extends SpongeCommandRegistrar<Command.Parameterized> {
+public class EmptyCommandTreeBuilder extends AbstractCommandTreeBuilder<CommandTreeBuilder.Empty> implements CommandTreeBuilder.Empty {
 
-    public static final CatalogKey CATALOG_KEY = CatalogKey.builder().namespace(SpongeImpl.getSpongePlugin()).value("managed").build();
-    public static final SpongeManagedCommandRegistrar INSTANCE = new SpongeManagedCommandRegistrar(CATALOG_KEY);
-
-    private SpongeManagedCommandRegistrar(CatalogKey catalogKey) {
-        super(catalogKey);
+    static CommandTreeBuilder.Empty literalTree() {
+        return new EmptyCommandTreeBuilder(null);
     }
 
-    @Override
-    LiteralArgumentBuilder<CommandCause> createNode(String primaryAlias, Command.Parameterized command) {
-        return null;
-    }
-
-    @Override
-    public void completeCommandTree(CommandTreeBuilder builder) {
-        // TODO
+    public EmptyCommandTreeBuilder(@Nullable ClientCompletionKey<Empty> parameterType) {
+        super(parameterType);
     }
 
 }

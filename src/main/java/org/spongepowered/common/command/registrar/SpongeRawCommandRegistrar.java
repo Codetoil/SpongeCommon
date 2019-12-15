@@ -36,10 +36,12 @@ import org.spongepowered.api.CatalogKey;
 import org.spongepowered.api.command.Command;
 import org.spongepowered.api.command.CommandCause;
 import org.spongepowered.api.command.exception.CommandException;
-import org.spongepowered.api.command.registrar.CommandTreeBuilder;
+import org.spongepowered.api.command.registrar.tree.ClientCompletionKeys;
+import org.spongepowered.api.command.registrar.tree.CommandTreeBuilder;
 import org.spongepowered.common.SpongeImpl;
 import org.spongepowered.common.command.exception.CommandRuntimeException;
 
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -70,10 +72,15 @@ public class SpongeRawCommandRegistrar extends SpongeCommandRegistrar<Command> {
     }
 
     @Override
-    public void completeCommandTree(CommandTreeBuilder builder) {
-        // TODO: This should be easy. Use a raw string, redirect any suggestion
-        // requests to here.
-
+    public void completeCommandTree(CommandTreeBuilder.Empty builder) {
+        for (final Map.Entry<String, Command> command : this.getCommandMap().entrySet()) {
+            builder.child(command.getKey(), emptyCommandTreeBuilder ->
+                    emptyCommandTreeBuilder.executable().child(PARAMETER_NAME, ClientCompletionKeys.ASK_SERVER, stringParserCommandTreeBuilder -> {
+                        stringParserCommandTreeBuilder
+                                .executable()
+                                .type(CommandTreeBuilder.StringParser.Types.GREEDY);
+                    }));
+        }
     }
 
     private static class Executor implements com.mojang.brigadier.Command<CommandCause> {

@@ -136,6 +136,10 @@ public abstract class SpongeCommandRegistrar<T extends Command> implements Comma
         return this.catalogKey;
     }
 
+    Map<String, T> getCommandMap() {
+        return this.commandMap;
+    }
+
     private String createCommandString(String command, String argument) {
         if (argument.isEmpty()) {
             return command;

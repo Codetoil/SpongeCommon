@@ -22,35 +22,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.spongepowered.common.command.registrar;
+package org.spongepowered.common.command.registrar.tree;
 
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import org.spongepowered.api.CatalogKey;
-import org.spongepowered.api.command.Command;
-import org.spongepowered.api.command.CommandCause;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.spongepowered.api.command.registrar.tree.ClientCompletionKey;
 import org.spongepowered.api.command.registrar.tree.CommandTreeBuilder;
-import org.spongepowered.common.SpongeImpl;
 
-/**
- * For use with {@link org.spongepowered.api.command.Command.Parameterized}
- */
-public class SpongeManagedCommandRegistrar extends SpongeCommandRegistrar<Command.Parameterized> {
+import java.util.Objects;
 
-    public static final CatalogKey CATALOG_KEY = CatalogKey.builder().namespace(SpongeImpl.getSpongePlugin()).value("managed").build();
-    public static final SpongeManagedCommandRegistrar INSTANCE = new SpongeManagedCommandRegistrar(CATALOG_KEY);
+public class StringCommandTreeBuilder extends AbstractCommandTreeBuilder<CommandTreeBuilder.StringParser> implements CommandTreeBuilder.StringParser {
 
-    private SpongeManagedCommandRegistrar(CatalogKey catalogKey) {
-        super(catalogKey);
+    private static final String TYPE_KEY = "type";
+
+    public StringCommandTreeBuilder(
+            @Nullable ClientCompletionKey<StringParser> parameterType) {
+        super(parameterType);
+        this.addProperty(TYPE_KEY, Types.WORD.name().toLowerCase());
     }
 
     @Override
-    LiteralArgumentBuilder<CommandCause> createNode(String primaryAlias, Command.Parameterized command) {
-        return null;
-    }
-
-    @Override
-    public void completeCommandTree(CommandTreeBuilder builder) {
-        // TODO
+    public StringParser type(Types type) {
+        Objects.requireNonNull(type);
+        return this.addProperty(TYPE_KEY, type.name().toLowerCase());
     }
 
 }

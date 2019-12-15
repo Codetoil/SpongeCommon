@@ -22,35 +22,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.spongepowered.common.command.registrar;
+package org.spongepowered.common.command.registrar.tree;
 
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import org.spongepowered.api.CatalogKey;
-import org.spongepowered.api.command.Command;
-import org.spongepowered.api.command.CommandCause;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.spongepowered.api.command.registrar.tree.ClientCompletionKey;
 import org.spongepowered.api.command.registrar.tree.CommandTreeBuilder;
-import org.spongepowered.common.SpongeImpl;
 
-/**
- * For use with {@link org.spongepowered.api.command.Command.Parameterized}
- */
-public class SpongeManagedCommandRegistrar extends SpongeCommandRegistrar<Command.Parameterized> {
+public class RangeCommandTreeBuilder<T extends Number>
+        extends AbstractCommandTreeBuilder<CommandTreeBuilder.Range<T>> implements CommandTreeBuilder.Range<T> {
 
-    public static final CatalogKey CATALOG_KEY = CatalogKey.builder().namespace(SpongeImpl.getSpongePlugin()).value("managed").build();
-    public static final SpongeManagedCommandRegistrar INSTANCE = new SpongeManagedCommandRegistrar(CATALOG_KEY);
+    private static final String MIN_PROPERTY = "min";
+    private static final String MAX_PROPERTY = "max";
 
-    private SpongeManagedCommandRegistrar(CatalogKey catalogKey) {
-        super(catalogKey);
+    public RangeCommandTreeBuilder(@Nullable ClientCompletionKey<Range<T>> parameterType) {
+        super(parameterType);
     }
 
     @Override
-    LiteralArgumentBuilder<CommandCause> createNode(String primaryAlias, Command.Parameterized command) {
-        return null;
+    public Range<T> min(@Nullable T min) {
+        if (min == null) {
+            return this.removeProperty(MIN_PROPERTY);
+        } else {
+            return this.addProperty(MIN_PROPERTY, min);
+        }
     }
 
     @Override
-    public void completeCommandTree(CommandTreeBuilder builder) {
-        // TODO
+    public Range<T> max(@Nullable T max) {
+        if (max == null) {
+            return this.removeProperty(MAX_PROPERTY);
+        } else {
+            return this.addProperty(MAX_PROPERTY, max);
+        }
     }
 
 }
