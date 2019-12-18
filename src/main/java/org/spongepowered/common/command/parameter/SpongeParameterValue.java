@@ -137,7 +137,7 @@ public class SpongeParameterValue<T> implements Parameter.Value<T> {
 
     @Override
     public List<String> complete(ArgumentReader.Immutable reader, CommandContext context) throws ArgumentParseException {
-        return this.completer.complete(reader, context);
+        return this.completer.complete(context);
     }
 
     @Override

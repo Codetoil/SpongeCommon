@@ -24,17 +24,12 @@
  */
 package org.spongepowered.common.command.registrar.tree;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spongepowered.api.command.registrar.tree.ClientCompletionKey;
 import org.spongepowered.api.command.registrar.tree.CommandTreeBuilder;
 
-public class EmptyCommandTreeBuilder extends AbstractCommandTreeBuilder<CommandTreeBuilder.Empty> implements CommandTreeBuilder.Empty {
+public class EmptyCommandTreeBuilder extends ArgumentCommandTreeBuilder<CommandTreeBuilder.Basic> implements CommandTreeBuilder<CommandTreeBuilder.Basic> {
 
-    static CommandTreeBuilder.Empty literalTree() {
-        return new EmptyCommandTreeBuilder(null);
-    }
-
-    public EmptyCommandTreeBuilder(@Nullable ClientCompletionKey<Empty> parameterType) {
+    public EmptyCommandTreeBuilder(ClientCompletionKey<Basic> parameterType) {
         super(parameterType);
     }
 

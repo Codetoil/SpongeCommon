@@ -49,8 +49,7 @@ public class SpongeManagedCommandRegistrar extends SpongeCommandRegistrar<Comman
     }
 
     @Override
-    public void completeCommandTree(CommandTreeBuilder builder) {
-        // TODO
+    public void completeCommandTree(CommandTreeBuilder.Basic builder) {
+         // TODO
     }
-
 }

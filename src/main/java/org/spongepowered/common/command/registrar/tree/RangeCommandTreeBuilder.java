@@ -29,12 +29,12 @@ import org.spongepowered.api.command.registrar.tree.ClientCompletionKey;
 import org.spongepowered.api.command.registrar.tree.CommandTreeBuilder;
 
 public class RangeCommandTreeBuilder<T extends Number>
-        extends AbstractCommandTreeBuilder<CommandTreeBuilder.Range<T>> implements CommandTreeBuilder.Range<T> {
+        extends ArgumentCommandTreeBuilder<CommandTreeBuilder.Range<T>> implements CommandTreeBuilder.Range<T> {
 
     private static final String MIN_PROPERTY = "min";
     private static final String MAX_PROPERTY = "max";
 
-    public RangeCommandTreeBuilder(@Nullable ClientCompletionKey<Range<T>> parameterType) {
+    public RangeCommandTreeBuilder(ClientCompletionKey<Range<T>> parameterType) {
         super(parameterType);
     }
 

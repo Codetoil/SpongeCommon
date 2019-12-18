@@ -30,12 +30,11 @@ import org.spongepowered.api.command.registrar.tree.CommandTreeBuilder;
 
 import java.util.Objects;
 
-public class StringCommandTreeBuilder extends AbstractCommandTreeBuilder<CommandTreeBuilder.StringParser> implements CommandTreeBuilder.StringParser {
+public class StringCommandTreeBuilder extends ArgumentCommandTreeBuilder<CommandTreeBuilder.StringParser> implements CommandTreeBuilder.StringParser {
 
     private static final String TYPE_KEY = "type";
 
-    public StringCommandTreeBuilder(
-            @Nullable ClientCompletionKey<StringParser> parameterType) {
+    public StringCommandTreeBuilder(ClientCompletionKey<StringParser> parameterType) {
         super(parameterType);
         this.addProperty(TYPE_KEY, Types.WORD.name().toLowerCase());
     }

@@ -24,35 +24,33 @@
  */
 package org.spongepowered.common.command.registrar.tree;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spongepowered.api.command.registrar.tree.ClientCompletionKey;
 import org.spongepowered.api.command.registrar.tree.CommandTreeBuilder;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public abstract class AbstractCommandTreeBuilder<T extends CommandTreeBuilder<T>> implements CommandTreeBuilder<T> {
 
-    @Nullable private final ClientCompletionKey<T> parameterType;
-
     @Nullable private Map<String, Object> properties = null;
-    @Nullable private Map<String, String> redirects = null;
-    @Nullable private Map<String, CommandTreeBuilder<?>> children = null;
+    @Nullable private Set<String> redirects = null;
+    @Nullable private Map<String, AbstractCommandTreeBuilder<?>> children = null;
     private boolean executable = false;
 
-    public AbstractCommandTreeBuilder(@Nullable ClientCompletionKey<T> parameterType) {
-        this.parameterType = parameterType;
-    }
-
     @Override
-    public T child(String key, Consumer<Empty> childNode) {
+    public T child(String key, Consumer<Basic> childNode) {
         Objects.requireNonNull(key);
         Objects.requireNonNull(childNode);
 
-        return child(key, EmptyCommandTreeBuilder::literalTree, childNode);
+        return child(key, LiteralCommandTreeBuilder::new, childNode);
     }
 
     @Override
@@ -74,19 +72,18 @@ public abstract class AbstractCommandTreeBuilder<T extends CommandTreeBuilder<T>
 
         S childTreeBuilder = builderSupplier.get();
         childNode.accept(childTreeBuilder);
-        this.children.put(key.toLowerCase(), childTreeBuilder);
+        this.children.put(key.toLowerCase(), (AbstractCommandTreeBuilder<?>) childTreeBuilder);
         return getThis();
     }
 
     @Override
-    public T redirect(String key, String to) {
-        Objects.requireNonNull(key);
+    public T redirect(String to) {
         Objects.requireNonNull(to);
 
         if (this.redirects == null) {
-            this.redirects = new HashMap<>();
+            this.redirects = new HashSet<>();
         }
-        this.redirects.put(key.toLowerCase(), to.toLowerCase());
+        this.redirects.add(to.toLowerCase());
 
         return getThis();
     }
@@ -122,9 +119,59 @@ public abstract class AbstractCommandTreeBuilder<T extends CommandTreeBuilder<T>
         return (T) this;
     }
 
+    public JsonObject toJson(JsonObject object) {
+        setType(object);
+        if (this.executable) {
+            object.addProperty("executable", true);
+        }
+
+        if (this.children != null) {
+            // create children
+            JsonObject childrenObject = new JsonObject();
+            for (Map.Entry<String, AbstractCommandTreeBuilder<?>> element : this.children.entrySet()) {
+                childrenObject.add(element.getKey(), element.getValue().toJson(new JsonObject()));
+            }
+            object.add("children", childrenObject);
+        }
+
+        if (this.redirects != null) {
+            JsonArray redirectObject = new JsonArray();
+            for (String redirect : this.redirects) {
+                redirectObject.add(redirect);
+            }
+        }
+
+        if (this.properties != null) {
+            JsonObject propertiesObject = null;
+            for (Map.Entry<String, Object> property : this.properties.entrySet()) {
+                if (property.getValue() != null) {
+                    if (propertiesObject == null) {
+                        propertiesObject = new JsonObject();
+                    }
+
+                    if (property.getValue() instanceof Number) {
+                        propertiesObject.addProperty(property.getKey(), (Number) property.getValue());
+                    } else if (property.getValue() instanceof Boolean) {
+                        propertiesObject.addProperty(property.getKey(), (boolean) property.getValue());
+                    } else {
+                        propertiesObject.addProperty(property.getKey(), String.valueOf(property.getValue()));
+                    }
+                }
+            }
+
+            if (propertiesObject != null) {
+                object.add("properties", propertiesObject);
+            }
+        }
+
+        return object;
+    }
+
+
+    abstract void setType(JsonObject object);
+
     private void checkKey(String key) {
-        if (this.children != null && this.children.containsKey(key.toLowerCase()) ||
-                (this.redirects != null && this.redirects.containsKey(key.toLowerCase()))) {
+        if (this.children != null && this.children.containsKey(key.toLowerCase())) {
             throw new IllegalArgumentException("Key " + key + " is already set.");
         }
     }
@@ -147,4 +194,5 @@ public abstract class AbstractCommandTreeBuilder<T extends CommandTreeBuilder<T>
 
         return getThis();
     }
+
 }

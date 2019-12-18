@@ -28,15 +28,15 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spongepowered.api.command.registrar.tree.ClientCompletionKey;
 import org.spongepowered.api.command.registrar.tree.CommandTreeBuilder;
 
-public abstract class AmountCommandTreeBuilder<T extends CommandTreeBuilder<T>>
-        extends AbstractCommandTreeBuilder<T> implements CommandTreeBuilder.AmountBase<T> {
+public class AmountCommandTreeBuilder<T extends CommandTreeBuilder<T>>
+        extends ArgumentCommandTreeBuilder<T> implements CommandTreeBuilder.AmountBase<T> {
 
     private static final String AMOUNT_KEY = "amount";
 
     private static final String AMOUNT_SINGLE = "single";
     private static final String AMOUNT_MULTIPLE = "multiple";
 
-    public AmountCommandTreeBuilder(@Nullable ClientCompletionKey<T> parameterType) {
+    public AmountCommandTreeBuilder(ClientCompletionKey<T> parameterType) {
         super(parameterType);
         this.addProperty(AMOUNT_KEY, AMOUNT_MULTIPLE);
     }
@@ -44,15 +44,6 @@ public abstract class AmountCommandTreeBuilder<T extends CommandTreeBuilder<T>>
     @Override
     public T single() {
         return this.addProperty(AMOUNT_KEY, AMOUNT_SINGLE);
-    }
-
-    // Avoids recursive generics.
-    public static class Concrete extends AmountCommandTreeBuilder<CommandTreeBuilder.Amount> implements CommandTreeBuilder.Amount {
-
-        public Concrete(@Nullable ClientCompletionKey<Amount> parameterType) {
-            super(parameterType);
-        }
-
     }
 
 }

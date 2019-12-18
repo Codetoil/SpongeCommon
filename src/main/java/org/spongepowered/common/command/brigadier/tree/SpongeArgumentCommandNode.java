@@ -61,8 +61,6 @@ public class SpongeArgumentCommandNode<T> extends ArgumentCommandNode<SpongeComm
     private final Parameter.Value<T> parameter;
     private final Parameter.Key<T> key;
 
-    // public ArgumentCommandNode(final String name, final ArgumentType<T> type, final Command<S> command, final Predicate<S> requirement, final CommandNode<S> redirect, final RedirectModifier<S> modifier, final boolean forks, final SuggestionProvider<S> customSuggestions) {
-
     public static <S> SpongeArgumentCommandNode<S> create(Parameter.Value<S> parameter, @Nullable CommandExecutor executor) {
         SpongeParameterArgumentType<S> parameterArgumentType =
                 new SpongeParameterArgumentType<S>(parameter.getKey(), parameter.getParsers(), parameter.getCompleter());
