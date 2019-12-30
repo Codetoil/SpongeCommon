@@ -72,14 +72,17 @@ public class SpongeRawCommandRegistrar extends SpongeCommandRegistrar<Command> {
     }
 
     @Override
-    public void completeCommandTree(CommandTreeBuilder.Basic builder) {
+    public void completeCommandTree(CommandCause commandCause, CommandTreeBuilder.Basic builder) {
         for (final Map.Entry<String, Command> command : this.getCommandMap().entrySet()) {
-            builder.child(command.getKey(), emptyCommandTreeBuilder ->
-                    emptyCommandTreeBuilder.executable().child(PARAMETER_NAME, ClientCompletionKeys.ASK_SERVER, stringParserCommandTreeBuilder -> {
-                        stringParserCommandTreeBuilder
-                                .executable()
-                                .type(CommandTreeBuilder.StringParser.Types.GREEDY);
-                    }));
+            if (command.getValue().canExecute(commandCause)) {
+                builder.child(command.getKey(), emptyCommandTreeBuilder ->
+                        emptyCommandTreeBuilder.executable()
+                                .child(PARAMETER_NAME, ClientCompletionKeys.ASK_SERVER, stringParserCommandTreeBuilder -> {
+                                    stringParserCommandTreeBuilder
+                                            .executable()
+                                            .type(CommandTreeBuilder.StringParser.Types.GREEDY);
+                                }));
+            }
         }
     }
 
