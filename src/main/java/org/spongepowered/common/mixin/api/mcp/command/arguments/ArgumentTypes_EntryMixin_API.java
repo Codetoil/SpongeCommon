@@ -22,39 +22,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.spongepowered.common.command.registrar;
+package org.spongepowered.common.mixin.api.mcp.command.arguments;
 
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.arguments.ArgumentType;
+import net.minecraft.util.ResourceLocation;
 import org.spongepowered.api.CatalogKey;
-import org.spongepowered.api.command.Command;
-import org.spongepowered.api.command.CommandCause;
+import org.spongepowered.api.command.registrar.tree.ClientCompletionKey;
 import org.spongepowered.api.command.registrar.tree.CommandTreeBuilder;
-import org.spongepowered.common.SpongeImpl;
-import org.spongepowered.common.command.manager.SpongeCommandCause;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.common.bridge.command.argument.ArgumentTypes_EntryBridge;
+import org.spongepowered.common.mixin.accessor.command.arguments.ArgumentTypes_EntryAccessor;
 
-/**
- * For use with {@link org.spongepowered.api.command.Command.Parameterized}
- */
-public class SpongeManagedCommandRegistrar extends SpongeCommandRegistrar<Command.Parameterized> {
+@Mixin(targets = "net/minecraft/command/arguments/ArgumentTypes$Entry")
+public abstract class ArgumentTypes_EntryMixin_API<T extends CommandTreeBuilder<T>, S extends ArgumentType<?>>
+        implements ClientCompletionKey<T>, ArgumentTypes_EntryBridge<T>, ArgumentTypes_EntryAccessor<S> {
 
-    public static final CatalogKey CATALOG_KEY = CatalogKey.builder().namespace(SpongeImpl.getSpongePlugin()).value("managed").build();
-    public static final SpongeManagedCommandRegistrar INSTANCE = new SpongeManagedCommandRegistrar(CATALOG_KEY);
+    @Shadow @Final public ResourceLocation shadow$id;
 
-    private SpongeManagedCommandRegistrar(CatalogKey catalogKey) {
-        super(catalogKey);
+    @Override
+    public T createCommandTreeBuilder() {
+        return this.bridge$provideCommandTreeBuilder();
     }
 
     @Override
-    LiteralArgumentBuilder<CommandCause> createNode(String primaryAlias, Command.Parameterized command) {
-        return null;
+    public CatalogKey getKey() {
+        return (CatalogKey) (Object) this.shadow$id;
     }
 
-    @Override
-    public void completeCommandTree(CommandCause commandCause, CommandTreeBuilder.Basic builder) {
-        // We're going to cheat at bit. We will let Minecraft serialise the nodes, then we'll use the
-        // Json that is provided to create the command trees.
-        // We don't really care for the helper methods, so all nodes will be "Basic". We don't allow
-        // exposing the tree to others.
-
-    }
 }

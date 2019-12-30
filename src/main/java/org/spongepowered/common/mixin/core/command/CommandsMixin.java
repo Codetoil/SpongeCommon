@@ -26,19 +26,33 @@ package org.spongepowered.common.mixin.core.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.StringReader;
+import com.mojang.brigadier.builder.ArgumentBuilder;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.tree.CommandNode;
+import com.mojang.brigadier.tree.LiteralCommandNode;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.command.ICommandSource;
 import net.minecraft.command.ISuggestionProvider;
+import net.minecraft.command.arguments.SuggestionProviders;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.command.CommandCause;
+import org.spongepowered.api.command.registrar.CommandRegistrar;
 import org.spongepowered.api.event.CauseStackManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.common.SpongeImpl;
+import org.spongepowered.common.command.manager.SpongeCommandCause;
+import org.spongepowered.common.command.manager.SpongeCommandManager;
+import org.spongepowered.common.command.registrar.BrigadierBackedCommandRegistrar;
 import org.spongepowered.common.command.registrar.VanillaCommandRegistrar;
+import org.spongepowered.common.command.registrar.tree.RootCommandTreeBuilder;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 @Mixin(Commands.class)
@@ -76,15 +90,87 @@ public abstract class CommandsMixin {
                 value = "INVOKE",
                 target = "Lnet/minecraft/command/Commands;commandSourceNodesToSuggestionNodes"
                 + "(Lcom/mojang/brigadier/tree/CommandNode;Lcom/mojang/brigadier/tree/CommandNode;Lnet/minecraft/command/CommandSource;Ljava/util/Map;)V"))
-    private void impl$addSuggestionsToCommandList(Commands commands, CommandNode<CommandSource> rootCommandSource,
-            CommandNode<ISuggestionProvider> rootSuggestion, CommandSource source,
+    private void impl$addSuggestionsToCommandList(
+            Commands commands,
+            CommandNode<CommandSource> rootCommandSource,
+            CommandNode<ISuggestionProvider> rootSuggestion,
+            CommandSource source,
             Map<CommandNode<CommandSource>, CommandNode<ISuggestionProvider>> commandNodeToSuggestionNode) {
 
         // We start by letting the Vanilla code do its thing...
         this.commandSourceNodesToSuggestionNodes(rootCommandSource, rootSuggestion, source, commandNodeToSuggestionNode);
 
-        // TODO: Then, redirect nodes that are aliases in the CommandManager
-        // TODO: Then we use our own objects to append to the tree by looping through all other registrars.
+        CommandCause cause = CommandCause.of(Sponge.getCauseStackManager().getCurrentCause());
+
+        // Now we take our command manager. Anything that is a Brigadier backed manager is easy...
+        SpongeImpl.getRegistry().getCatalogRegistry().getAllOf(CommandRegistrar.class)
+                .filter(x -> !(x instanceof VanillaCommandRegistrar))
+                .forEach(x -> {
+                    if (x instanceof BrigadierBackedCommandRegistrar) {
+                        // use the node to throw it something similar to the Vanilla spec...
+                        Map<CommandNode<CommandCause>, CommandNode<ISuggestionProvider>> map = new HashMap<>();
+                        this.impl$createSuggestionNodes(
+                                ((BrigadierBackedCommandRegistrar) x).getCommandNode(),
+                                rootSuggestion,
+                                cause,
+                                map);
+                    } else {
+                        // get the command trees
+                        RootCommandTreeBuilder treeBuilder = new RootCommandTreeBuilder();
+                        x.completeCommandTree(cause, treeBuilder);
+
+                        // TODO: create a Brig tree and merge
+                    }
+                });
+
+        // Finally, add our aliases to the tree using redirects.
+        SpongeCommandManager commandManager = SpongeImpl.getCommandManager();
+        commandManager.getMappings().forEach((primary, mapping) -> {
+            CommandNode<ISuggestionProvider> targetRedirect = rootSuggestion.getChild(primary);
+            mapping.getAllAliases().forEach(alias -> {
+                if (!alias.equals(primary)) {
+                    rootSuggestion.addChild(
+                            LiteralArgumentBuilder.<ISuggestionProvider>literal(alias).redirect(targetRedirect).build()
+                    );
+                }
+            });
+        });
     }
 
+    // This method is almost a direct copy of commandSourceNodesToSuggestionNodes,
+    // changing in CommandCause for CommandSource
+    // TODO: Try to meld CommandSource into CommandCause?
+    private void impl$createSuggestionNodes(
+            CommandNode<CommandCause> rootCommandSource,
+            CommandNode<ISuggestionProvider> rootSuggestion,
+            CommandCause source,
+            Map<CommandNode<CommandCause>, CommandNode<ISuggestionProvider>> commandNodeToSuggestionNode) {
+        for(CommandNode<CommandCause> commandnode : rootCommandSource.getChildren()) {
+            if (commandnode.canUse(source)) {
+                ArgumentBuilder<ISuggestionProvider, ?> argumentbuilder = (ArgumentBuilder)commandnode.createBuilder();
+                argumentbuilder.requires((p_197060_0_) -> true);
+                if (argumentbuilder.getCommand() != null) {
+                    argumentbuilder.executes((p_197053_0_) -> 0);
+                }
+
+                if (argumentbuilder instanceof RequiredArgumentBuilder) {
+                    RequiredArgumentBuilder<ISuggestionProvider, ?> requiredargumentbuilder = (RequiredArgumentBuilder)argumentbuilder;
+                    if (requiredargumentbuilder.getSuggestionsProvider() != null) {
+                        requiredargumentbuilder.suggests(SuggestionProviders.ensureKnown(requiredargumentbuilder.getSuggestionsProvider()));
+                    }
+                }
+
+                if (argumentbuilder.getRedirect() != null) {
+                    argumentbuilder.redirect(commandNodeToSuggestionNode.get(argumentbuilder.getRedirect()));
+                }
+
+                CommandNode<ISuggestionProvider> commandnode1 = argumentbuilder.build();
+                commandNodeToSuggestionNode.put(commandnode, commandnode1);
+                rootSuggestion.addChild(commandnode1);
+                if (!commandnode.getChildren().isEmpty()) {
+                    this.impl$createSuggestionNodes(commandnode, commandnode1, source, commandNodeToSuggestionNode);
+                }
+            }
+        }
+    }
 }

@@ -22,15 +22,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.spongepowered.common.command.registrar.tree;
+package org.spongepowered.common.mixin.accessor.command.arguments;
 
-import org.spongepowered.api.command.registrar.tree.ClientCompletionKey;
-import org.spongepowered.api.command.registrar.tree.CommandTreeBuilder;
+import com.mojang.brigadier.arguments.ArgumentType;
+import net.minecraft.command.arguments.IArgumentSerializer;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.gen.Accessor;
 
-public class EmptyCommandTreeBuilder extends ArgumentCommandTreeBuilder<CommandTreeBuilder.Basic> implements CommandTreeBuilder.Basic {
+@Mixin(targets = "net/minecraft/command/arguments/ArgumentTypes$Entry")
+public interface ArgumentTypes_EntryAccessor<T extends ArgumentType<?>> {
 
-    public EmptyCommandTreeBuilder(ClientCompletionKey<Basic> parameterType) {
-        super(parameterType);
-    }
+    @Accessor("serializer")
+    IArgumentSerializer<T> accessor$getSerializer();
 
 }

@@ -1295,6 +1295,19 @@ public final class Constants {
         }
     }
 
+    public static final class Command {
+
+        public static final String TYPE = "type";
+        public static final String ROOT = "root";
+        public static final String LITERAL = "literal";
+        public static final String ARGUMENT = "argument";
+        public static final String CHILDREN = "children";
+        public static final String PARSER = "parser";
+        public static final String PROPERTIES = "properties";
+        public static final String EXECUTABLE = "executable";
+        public static final String REDIRECT = "redirect";
+    }
+
     public static final class DirectionFunctions {
 
         public static net.minecraft.util.Direction getFor(final Direction direction) {

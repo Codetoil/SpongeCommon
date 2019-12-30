@@ -24,11 +24,16 @@
  */
 package org.spongepowered.common.command.registrar.tree;
 
+import com.google.common.base.Preconditions;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.mojang.brigadier.builder.ArgumentBuilder;
+import com.mojang.brigadier.tree.CommandNode;
+import net.minecraft.command.ISuggestionProvider;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spongepowered.api.command.registrar.tree.ClientCompletionKey;
 import org.spongepowered.api.command.registrar.tree.CommandTreeBuilder;
+import org.spongepowered.common.bridge.brigadier.tree.CommandNodeBridge;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,19 +43,21 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public abstract class AbstractCommandTreeBuilder<T extends CommandTreeBuilder<T>> implements CommandTreeBuilder<T> {
+public abstract class AbstractCommandTreeBuilder<T extends CommandTreeBuilder<T>, B extends ArgumentBuilder<ISuggestionProvider, ?>>
+        implements CommandTreeBuilder<T> {
 
     @Nullable private Map<String, Object> properties = null;
-    @Nullable private Set<String> redirects = null;
-    @Nullable private Map<String, AbstractCommandTreeBuilder<?>> children = null;
+    @Nullable private String redirect = null;
+    @Nullable private Map<String, AbstractCommandTreeBuilder<?, ?>> children = null;
     private boolean executable = false;
+    private boolean customSuggestions = false;
 
     @Override
     public T child(String key, Consumer<Basic> childNode) {
         Objects.requireNonNull(key);
         Objects.requireNonNull(childNode);
 
-        return child(key, LiteralCommandTreeBuilder::new, childNode);
+        return childInternal(key, LiteralCommandTreeBuilder::new, childNode);
     }
 
     @Override
@@ -58,13 +65,14 @@ public abstract class AbstractCommandTreeBuilder<T extends CommandTreeBuilder<T>
         Objects.requireNonNull(key);
         Objects.requireNonNull(completionKey);
         Objects.requireNonNull(childNode);
-        return child(key, completionKey::createCommandTreeBuilder, childNode);
+        return childInternal(key, completionKey::createCommandTreeBuilder, childNode);
     }
 
-    private <S extends CommandTreeBuilder<S>> T child(
+    private <S extends CommandTreeBuilder<S>> T childInternal(
             String key,
             Supplier<S> builderSupplier,
             Consumer<S> childNode) {
+        Preconditions.checkState(this.redirect == null, "There must be no redirect if using children nodes");
         checkKey(key);
         if (this.children == null) {
             this.children = new HashMap<>();
@@ -72,25 +80,27 @@ public abstract class AbstractCommandTreeBuilder<T extends CommandTreeBuilder<T>
 
         S childTreeBuilder = builderSupplier.get();
         childNode.accept(childTreeBuilder);
-        this.children.put(key.toLowerCase(), (AbstractCommandTreeBuilder<?>) childTreeBuilder);
+        this.children.put(key.toLowerCase(), (AbstractCommandTreeBuilder<?, ?>) childTreeBuilder);
         return getThis();
     }
 
     @Override
     public T redirect(String to) {
-        Objects.requireNonNull(to);
-
-        if (this.redirects == null) {
-            this.redirects = new HashSet<>();
-        }
-        this.redirects.add(to.toLowerCase());
-
+        Preconditions.checkNotNull(to);
+        Preconditions.checkState(this.children == null, "There must be no children if using a redirect");
+        this.redirect = to.toLowerCase();
         return getThis();
     }
 
     @Override
     public T executable() {
         this.executable = true;
+        return getThis();
+    }
+
+    @Override
+    public T customSuggestions() {
+        this.customSuggestions = true;
         return getThis();
     }
 
@@ -119,26 +129,42 @@ public abstract class AbstractCommandTreeBuilder<T extends CommandTreeBuilder<T>
         return (T) this;
     }
 
-    public JsonObject toJson(JsonObject object) {
+    protected abstract B createSpecificCommandNode(String name);
+
+    public CommandNode<ISuggestionProvider> createCommandNode(String name) {
+        B node = createSpecificCommandNode(name);
+        if (this.executable) {
+            // We don't care about what it does, just that it does something.
+            node.executes(context -> 1);
+        }
+
+        // create the node itself, because of how we do the redirect resolution.
+        // (sorry Mojang)
+        CommandNode<ISuggestionProvider> builtNode = node.build();
+        if (this.redirect != null) {
+            ((CommandNodeBridge<ISuggestionProvider>) builtNode).bridge$provideRedirectString(this.redirect);
+        }
+
+    }
+
+    public JsonObject toJson(JsonObject object, boolean withChildren) {
         setType(object);
         if (this.executable) {
             object.addProperty("executable", true);
         }
 
-        if (this.children != null) {
+        if (withChildren && this.children != null) {
             // create children
             JsonObject childrenObject = new JsonObject();
-            for (Map.Entry<String, AbstractCommandTreeBuilder<?>> element : this.children.entrySet()) {
-                childrenObject.add(element.getKey(), element.getValue().toJson(new JsonObject()));
+            for (Map.Entry<String, AbstractCommandTreeBuilder<?, ?>> element : this.children.entrySet()) {
+                childrenObject.add(element.getKey(), element.getValue().toJson(new JsonObject(), true));
             }
             object.add("children", childrenObject);
         }
 
-        if (this.redirects != null) {
+        if (this.redirect != null) {
             JsonArray redirectObject = new JsonArray();
-            for (String redirect : this.redirects) {
-                redirectObject.add(redirect);
-            }
+            redirectObject.add(this.redirect);
         }
 
         if (this.properties != null) {

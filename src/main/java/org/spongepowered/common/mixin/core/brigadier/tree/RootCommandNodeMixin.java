@@ -33,7 +33,7 @@ import org.spongepowered.common.bridge.brigadier.tree.RootCommandNodeBridge;
 import org.spongepowered.common.mixin.accessor.brigadier.tree.CommandNodeAccessor;
 
 @Mixin(RootCommandNode.class)
-public abstract class RootCommandNodeMixin<S> implements RootCommandNodeBridge<S>, CommandNodeAccessor<S> {
+public abstract class RootCommandNodeMixin<S> extends CommandNodeMixin<S> implements RootCommandNodeBridge<S> {
 
     @Override
     public void bridge$removeNode(CommandNode<S> nodeToRemove) {

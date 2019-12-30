@@ -40,6 +40,8 @@ import org.spongepowered.api.command.registrar.tree.ClientCompletionKeys;
 import org.spongepowered.api.command.registrar.tree.CommandTreeBuilder;
 import org.spongepowered.common.SpongeImpl;
 import org.spongepowered.common.command.exception.CommandRuntimeException;
+import org.spongepowered.common.command.manager.SpongeCommandCause;
+import org.spongepowered.common.mixin.accessor.brigadier.context.CommandContextAccessor;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -77,11 +79,12 @@ public class SpongeRawCommandRegistrar extends SpongeCommandRegistrar<Command> {
             if (command.getValue().canExecute(commandCause)) {
                 builder.child(command.getKey(), emptyCommandTreeBuilder ->
                         emptyCommandTreeBuilder.executable()
-                                .child(PARAMETER_NAME, ClientCompletionKeys.ASK_SERVER, stringParserCommandTreeBuilder -> {
+                                .child(PARAMETER_NAME, ClientCompletionKeys.STRING, stringParserCommandTreeBuilder -> {
                                     stringParserCommandTreeBuilder
                                             .executable()
                                             .type(CommandTreeBuilder.StringParser.Types.GREEDY);
-                                }));
+                                })
+                                .customSuggestions());
             }
         }
     }

@@ -22,15 +22,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.spongepowered.common.command.registrar.tree;
+package org.spongepowered.common.mixin.core.command.arguments;
 
+import com.mojang.brigadier.arguments.ArgumentType;
 import org.spongepowered.api.command.registrar.tree.ClientCompletionKey;
 import org.spongepowered.api.command.registrar.tree.CommandTreeBuilder;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.common.bridge.command.argument.ArgumentTypes_EntryBridge;
+import org.spongepowered.common.mixin.accessor.command.arguments.ArgumentTypes_EntryAccessor;
 
-public class EmptyCommandTreeBuilder extends ArgumentCommandTreeBuilder<CommandTreeBuilder.Basic> implements CommandTreeBuilder.Basic {
+import java.util.function.Function;
 
-    public EmptyCommandTreeBuilder(ClientCompletionKey<Basic> parameterType) {
-        super(parameterType);
+@Mixin(targets = "net/minecraft/command/arguments/ArgumentTypes$Entry")
+public abstract class ArgumentTypes_EntryMixin<T extends CommandTreeBuilder<T>, S extends ArgumentType<?>>
+        implements ArgumentTypes_EntryBridge<T>, ArgumentTypes_EntryAccessor<S> {
+
+    private Function<ClientCompletionKey<T>, T> impl$supplier;
+
+    @Override
+    public T bridge$provideCommandTreeBuilder() {
+        return this.impl$supplier.apply((ClientCompletionKey<T>) this);
+    }
+
+    @Override
+    public void bridge$setCommandTreeBuilderProvider(Function<ClientCompletionKey<T>, T> supplier) {
+        this.impl$supplier = supplier;
     }
 
 }

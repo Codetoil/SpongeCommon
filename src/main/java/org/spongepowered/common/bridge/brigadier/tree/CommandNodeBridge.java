@@ -22,15 +22,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.spongepowered.common.command.registrar.tree;
+package org.spongepowered.common.bridge.brigadier.tree;
 
-import org.spongepowered.api.command.registrar.tree.ClientCompletionKey;
-import org.spongepowered.api.command.registrar.tree.CommandTreeBuilder;
+import com.mojang.brigadier.CommandDispatcher;
 
-public class EmptyCommandTreeBuilder extends ArgumentCommandTreeBuilder<CommandTreeBuilder.Basic> implements CommandTreeBuilder.Basic {
+public interface CommandNodeBridge<S> {
 
-    public EmptyCommandTreeBuilder(ClientCompletionKey<Basic> parameterType) {
-        super(parameterType);
-    }
+    void bridge$provideRedirectString(String redirectString);
+
+    void bridge$resolveRedirect(CommandDispatcher<S> dispatcher);
 
 }

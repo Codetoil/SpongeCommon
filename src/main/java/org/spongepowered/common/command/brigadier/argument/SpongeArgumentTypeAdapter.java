@@ -100,6 +100,4 @@ public class SpongeArgumentTypeAdapter<T> implements ArgumentType<T>, ValueParam
         return Optional.empty();
     }
 
-
-
 }

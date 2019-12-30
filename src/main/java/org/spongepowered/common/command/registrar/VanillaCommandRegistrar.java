@@ -32,6 +32,7 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import net.minecraft.command.ICommandSource;
+import net.minecraft.command.arguments.ArgumentTypes;
 import org.spongepowered.api.CatalogKey;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandCause;
@@ -45,6 +46,7 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.common.SpongeImpl;
 import org.spongepowered.common.bridge.brigadier.tree.RootCommandNodeBridge;
 import org.spongepowered.common.command.CommandHelper;
+import org.spongepowered.common.command.registrar.tree.CommandTreeHelper;
 
 import java.util.Collections;
 import java.util.List;
@@ -121,8 +123,8 @@ public class VanillaCommandRegistrar extends CommandDispatcher<ICommandSource> i
     }
 
     @Override
-    public void completeCommandTree(CommandTreeBuilder builder) {
-
+    public void completeCommandTree(CommandCause commandCause, CommandTreeBuilder.Basic builder) {
+        CommandTreeHelper.fromJson(builder, ArgumentTypes.serialize(this, this.getRoot()));
     }
 
     @Override

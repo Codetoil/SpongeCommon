@@ -24,11 +24,14 @@
  */
 package org.spongepowered.common.command.registrar;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestion;
+import com.mojang.brigadier.tree.CommandNode;
+import net.minecraft.command.CommandSource;
 import org.spongepowered.api.CatalogKey;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.Command;
@@ -37,10 +40,10 @@ import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.exception.CommandException;
 import org.spongepowered.api.command.manager.CommandMapping;
 import org.spongepowered.api.command.manager.CommandFailedRegistrationException;
-import org.spongepowered.api.command.registrar.CommandRegistrar;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.common.bridge.brigadier.tree.RootCommandNodeBridge;
+import org.spongepowered.common.command.manager.SpongeCommandCause;
 import org.spongepowered.common.command.manager.SpongeCommandManager;
 import org.spongepowered.common.command.manager.SpongeCommandMapping;
 
@@ -51,7 +54,7 @@ import java.util.Optional;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-public abstract class SpongeCommandRegistrar<T extends Command> implements CommandRegistrar {
+public abstract class SpongeCommandRegistrar<T extends Command> implements BrigadierBackedCommandRegistrar {
 
     private final CommandDispatcher<CommandCause> dispatcher = new CommandDispatcher<>();
     private final Map<String, T> commandMap = new TreeMap<>();
@@ -92,8 +95,9 @@ public abstract class SpongeCommandRegistrar<T extends Command> implements Comma
 
     @Override
     public CommandResult process(CommandCause cause, String command, String arguments) throws CommandException {
+        Preconditions.checkState(cause instanceof SpongeCommandCause, "Must be a SpongeCommandCause");
         try {
-            return CommandResult.builder().setResult(this.dispatcher.execute(createCommandString(command, arguments), cause)).build();
+            return CommandResult.builder().setResult(this.dispatcher.execute(createCommandString(command, arguments), (SpongeCommandCause) cause)).build();
         } catch (CommandSyntaxException e) {
             // We'll unwrap later.
             throw new CommandException(Text.of(e.getMessage()), e);
@@ -102,9 +106,10 @@ public abstract class SpongeCommandRegistrar<T extends Command> implements Comma
 
     @Override
     public List<String> suggestions(CommandCause cause, String command, String arguments) {
+        Preconditions.checkState(cause instanceof SpongeCommandCause, "Must be a SpongeCommandCause");
         try {
             return this.dispatcher.getCompletionSuggestions(
-                            this.dispatcher.parse(createCommandString(command, arguments), cause)
+                            this.dispatcher.parse(createCommandString(command, arguments), (SpongeCommandCause) cause)
                     ).join().getList().stream().map(Suggestion::getText).collect(Collectors.toList());
         } catch (Exception e) {
             return Collections.emptyList();
@@ -149,4 +154,9 @@ public abstract class SpongeCommandRegistrar<T extends Command> implements Comma
     }
 
     abstract LiteralArgumentBuilder<CommandCause> createNode(String primaryAlias, T command);
+
+    @Override
+    public CommandNode<CommandCause> getCommandNode() {
+         return this.dispatcher.getRoot();
+    }
 }

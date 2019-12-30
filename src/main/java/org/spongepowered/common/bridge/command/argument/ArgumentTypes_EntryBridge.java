@@ -22,15 +22,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.spongepowered.common.command.registrar.tree;
+package org.spongepowered.common.bridge.command.argument;
 
 import org.spongepowered.api.command.registrar.tree.ClientCompletionKey;
 import org.spongepowered.api.command.registrar.tree.CommandTreeBuilder;
 
-public class EmptyCommandTreeBuilder extends ArgumentCommandTreeBuilder<CommandTreeBuilder.Basic> implements CommandTreeBuilder.Basic {
+import java.util.function.Function;
 
-    public EmptyCommandTreeBuilder(ClientCompletionKey<Basic> parameterType) {
-        super(parameterType);
-    }
+public interface ArgumentTypes_EntryBridge<T extends CommandTreeBuilder<T>> {
+
+    T bridge$provideCommandTreeBuilder();
+
+    void bridge$setCommandTreeBuilderProvider(Function<ClientCompletionKey<T>, T> producer);
 
 }

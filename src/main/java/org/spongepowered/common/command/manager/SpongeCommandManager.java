@@ -216,7 +216,7 @@ public class SpongeCommandManager implements CommandManager {
     @NonNull
     public CommandResult process(@NonNull String arguments) throws CommandException {
         try (CauseStackManager.StackFrame frame = Sponge.getCauseStackManager().pushCauseFrame()) {
-            frame.addContext(EventContextKeys.COMMAND_STRING, arguments);
+            frame.addContext(EventContextKeys.COMMAND_STRING.get(), arguments);
             String[] splitArg = arguments.split(" ", 2);
             String command = splitArg[0];
             String args = splitArg.length == 2 ? splitArg[1] : "";
@@ -235,8 +235,8 @@ public class SpongeCommandManager implements CommandManager {
             @NonNull T subjectReceiver,
             @NonNull String arguments) throws CommandException {
         try (CauseStackManager.StackFrame frame = Sponge.getCauseStackManager().pushCauseFrame()) {
-            frame.addContext(EventContextKeys.SUBJECT, subjectReceiver);
-            frame.addContext(EventContextKeys.MESSAGE_CHANNEL, MessageChannel.to(subjectReceiver));
+            frame.addContext(EventContextKeys.SUBJECT.get(), subjectReceiver);
+            frame.addContext(EventContextKeys.MESSAGE_CHANNEL.get(), MessageChannel.to(subjectReceiver));
             return process(arguments);
         }
     }
@@ -248,8 +248,8 @@ public class SpongeCommandManager implements CommandManager {
             @NonNull MessageChannel receiver,
             @NonNull String arguments) throws CommandException {
         try (CauseStackManager.StackFrame frame = Sponge.getCauseStackManager().pushCauseFrame()) {
-            frame.addContext(EventContextKeys.SUBJECT, subject);
-            frame.addContext(EventContextKeys.MESSAGE_CHANNEL, receiver);
+            frame.addContext(EventContextKeys.SUBJECT.get(), subject);
+            frame.addContext(EventContextKeys.MESSAGE_CHANNEL.get(), receiver);
             return process(arguments);
         }
     }
@@ -258,7 +258,7 @@ public class SpongeCommandManager implements CommandManager {
     @NonNull
     public List<String> suggest(@NonNull String arguments) {
         try (CauseStackManager.StackFrame frame = Sponge.getCauseStackManager().pushCauseFrame()) {
-            frame.addContext(EventContextKeys.COMMAND_STRING, arguments);
+            frame.addContext(EventContextKeys.COMMAND_STRING.get(), arguments);
             String[] splitArg = arguments.split(" ", 2);
             String command = splitArg[0].toLowerCase();
 
@@ -289,8 +289,8 @@ public class SpongeCommandManager implements CommandManager {
             @NonNull T subjectReceiver,
             @NonNull String arguments) {
         try (CauseStackManager.StackFrame frame = Sponge.getCauseStackManager().pushCauseFrame()) {
-            frame.addContext(EventContextKeys.SUBJECT, subjectReceiver);
-            frame.addContext(EventContextKeys.MESSAGE_CHANNEL, MessageChannel.to(subjectReceiver));
+            frame.addContext(EventContextKeys.SUBJECT.get(), subjectReceiver);
+            frame.addContext(EventContextKeys.MESSAGE_CHANNEL.get(), MessageChannel.to(subjectReceiver));
             return suggest(arguments);
         }
     }
@@ -302,10 +302,14 @@ public class SpongeCommandManager implements CommandManager {
             @NonNull MessageChannel receiver,
             @NonNull String arguments) {
         try (CauseStackManager.StackFrame frame = Sponge.getCauseStackManager().pushCauseFrame()) {
-            frame.addContext(EventContextKeys.SUBJECT, subject);
-            frame.addContext(EventContextKeys.MESSAGE_CHANNEL, receiver);
+            frame.addContext(EventContextKeys.SUBJECT.get(), subject);
+            frame.addContext(EventContextKeys.MESSAGE_CHANNEL.get(), receiver);
             return suggest(arguments);
         }
+    }
+
+    public Map<String, SpongeCommandMapping> getMappings() {
+        return this.commandMappings;
     }
 
     private boolean isMinecraftOrSpongePluginContainer(PluginContainer pluginContainer) {

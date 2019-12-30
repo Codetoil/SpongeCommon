@@ -24,37 +24,33 @@
  */
 package org.spongepowered.common.command.registrar;
 
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import org.spongepowered.api.CatalogKey;
-import org.spongepowered.api.command.Command;
+import com.mojang.brigadier.tree.CommandNode;
 import org.spongepowered.api.command.CommandCause;
+import org.spongepowered.api.command.registrar.CommandRegistrar;
 import org.spongepowered.api.command.registrar.tree.CommandTreeBuilder;
-import org.spongepowered.common.SpongeImpl;
-import org.spongepowered.common.command.manager.SpongeCommandCause;
 
 /**
- * For use with {@link org.spongepowered.api.command.Command.Parameterized}
+ * This is an API in Common! For those plugins that decide that they wish to
+ * use Brigadier, they should implement this interface. By doing so, we will
+ * bypass the creation of our {@link CommandTreeBuilder} objects and pull
+ * suggestions directly from the provided tree. This implementation uses this
+ * for our own command work.
+ *
+ * <p>We obviously discourage the use of this "API" as it is implementation
+ * bound. We do not guarantee this interface will not break from build to
+ * build, it is provided as a courtesy.</p>
+ *
+ * <p><strong>USE AT YOUR OWN RISK.</strong></p>
  */
-public class SpongeManagedCommandRegistrar extends SpongeCommandRegistrar<Command.Parameterized> {
+public interface BrigadierBackedCommandRegistrar extends CommandRegistrar {
 
-    public static final CatalogKey CATALOG_KEY = CatalogKey.builder().namespace(SpongeImpl.getSpongePlugin()).value("managed").build();
-    public static final SpongeManagedCommandRegistrar INSTANCE = new SpongeManagedCommandRegistrar(CATALOG_KEY);
+    /**
+     * Gets the backing Brigadier {@link CommandNode} for this registrar. You
+     * <strong>do not</strong> need to filter out commands that users should
+     * not be able to acess.
+     *
+     * @return The {@link CommandNode}.
+     */
+    CommandNode<CommandCause> getCommandNode();
 
-    private SpongeManagedCommandRegistrar(CatalogKey catalogKey) {
-        super(catalogKey);
-    }
-
-    @Override
-    LiteralArgumentBuilder<CommandCause> createNode(String primaryAlias, Command.Parameterized command) {
-        return null;
-    }
-
-    @Override
-    public void completeCommandTree(CommandCause commandCause, CommandTreeBuilder.Basic builder) {
-        // We're going to cheat at bit. We will let Minecraft serialise the nodes, then we'll use the
-        // Json that is provided to create the command trees.
-        // We don't really care for the helper methods, so all nodes will be "Basic". We don't allow
-        // exposing the tree to others.
-
-    }
 }
