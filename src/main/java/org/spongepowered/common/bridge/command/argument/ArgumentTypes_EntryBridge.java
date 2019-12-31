@@ -27,11 +27,10 @@ package org.spongepowered.common.bridge.command.argument;
 import com.mojang.brigadier.arguments.ArgumentType;
 import org.spongepowered.api.command.registrar.tree.ClientCompletionKey;
 import org.spongepowered.api.command.registrar.tree.CommandTreeBuilder;
-import org.spongepowered.common.mixin.accessor.command.arguments.ArgumentTypes_EntryAccessor;
 
 import java.util.function.Function;
 
-public interface ArgumentTypes_EntryBridge<S extends ArgumentType<?>, T extends CommandTreeBuilder<T>> extends ArgumentTypes_EntryAccessor<S> {
+public interface ArgumentTypes_EntryBridge<S extends ArgumentType<?>, T extends CommandTreeBuilder<T>> {
 
     T bridge$provideCommandTreeBuilder();
 

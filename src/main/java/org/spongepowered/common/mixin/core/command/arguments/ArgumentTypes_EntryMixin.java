@@ -29,13 +29,12 @@ import org.spongepowered.api.command.registrar.tree.ClientCompletionKey;
 import org.spongepowered.api.command.registrar.tree.CommandTreeBuilder;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.common.bridge.command.argument.ArgumentTypes_EntryBridge;
-import org.spongepowered.common.mixin.accessor.command.arguments.ArgumentTypes_EntryAccessor;
 
 import java.util.function.Function;
 
 @Mixin(targets = "net/minecraft/command/arguments/ArgumentTypes$Entry")
 public abstract class ArgumentTypes_EntryMixin<T extends CommandTreeBuilder<T>, S extends ArgumentType<?>>
-        implements ArgumentTypes_EntryBridge<S, T>, ArgumentTypes_EntryAccessor<S> {
+        implements ArgumentTypes_EntryBridge<S, T> {
 
     private Function<ClientCompletionKey<T>, T> impl$supplier;
 

@@ -33,11 +33,10 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.common.bridge.command.argument.ArgumentTypes_EntryBridge;
-import org.spongepowered.common.mixin.accessor.command.arguments.ArgumentTypes_EntryAccessor;
 
 @Mixin(targets = "net/minecraft/command/arguments/ArgumentTypes$Entry")
 public abstract class ArgumentTypes_EntryMixin_API<T extends CommandTreeBuilder<T>, S extends ArgumentType<?>>
-        implements ClientCompletionKey<T>, ArgumentTypes_EntryBridge<S, T>, ArgumentTypes_EntryAccessor<S> {
+        implements ClientCompletionKey<T>, ArgumentTypes_EntryBridge<S, T> {
 
     @Shadow @Final public ResourceLocation shadow$id;
 
