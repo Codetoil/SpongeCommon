@@ -30,6 +30,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.inject.Singleton;
+import com.mojang.brigadier.StringReader;
+import net.minecraft.command.CommandSource;
+import net.minecraft.command.ICommandSource;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.Command;
@@ -52,6 +55,7 @@ import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.common.SpongeImpl;
 import org.spongepowered.common.command.registrar.SpongeManagedCommandRegistrar;
 import org.spongepowered.common.command.registrar.SpongeRawCommandRegistrar;
+import org.spongepowered.common.text.SpongeTexts;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -67,9 +71,6 @@ import java.util.stream.Collectors;
 
 @Singleton
 public class SpongeCommandManager implements CommandManager {
-
-    private static final Parameter.Value<String> OPTIONAL_REMAINING_STRING =
-            Parameter.remainingRawJoinedStrings().setKey("arguments").optional().build();
 
     private final Map<String, SpongeCommandMapping> commandMappings = new HashMap<>();
     private final Multimap<SpongeCommandMapping, String> inverseCommandMappings = HashMultimap.create();
@@ -210,6 +211,21 @@ public class SpongeCommandManager implements CommandManager {
     public boolean isRegistered(@NonNull CommandMapping mapping) {
         Preconditions.checkArgument(mapping instanceof SpongeCommandMapping, "Mapping is not of type SpongeCommandMapping!");
         return this.inverseCommandMappings.containsKey(mapping);
+    }
+
+    public int process(@NonNull CommandSource source, @NonNull String commandToSend) throws net.minecraft.command.CommandException {
+        try (CauseStackManager.StackFrame frame = Sponge.getCauseStackManager().pushCauseFrame()) {
+            frame.pushCause(source);
+            return process(commandToSend).getResult();
+        } catch (CommandException ex) {
+            Throwable cause = ex.getCause();
+            if (cause instanceof net.minecraft.command.CommandException) {
+                throw (net.minecraft.command.CommandException) cause;
+            }
+
+            source.sendErrorMessage(SpongeTexts.toComponent(ex.getText()));
+            return 0;
+        }
     }
 
     @Override

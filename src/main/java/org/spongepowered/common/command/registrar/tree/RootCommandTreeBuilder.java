@@ -25,13 +25,28 @@
 package org.spongepowered.common.command.registrar.tree;
 
 import com.google.gson.JsonObject;
+import com.mojang.brigadier.builder.ArgumentBuilder;
+import com.mojang.brigadier.tree.RootCommandNode;
+import net.minecraft.command.ISuggestionProvider;
 import org.spongepowered.api.command.registrar.tree.CommandTreeBuilder;
+import org.spongepowered.common.util.Constants;
+
+import java.util.Map;
 
 public class RootCommandTreeBuilder extends AbstractCommandTreeBuilder<CommandTreeBuilder.Basic> implements CommandTreeBuilder.Basic {
 
     @Override
     void setType(JsonObject object) {
         object.addProperty("type", "root");
+    }
+
+    @Override
+    public byte getNodeMask() {
+        return Constants.Command.ROOT_NODE_BIT;
+    }
+
+    public void addChildren(Map<String, AbstractCommandTreeBuilder<?>> children) {
+        this.addChildrenInternal(children);
     }
 
 }

@@ -35,7 +35,7 @@ import java.util.function.Function;
 
 @Mixin(targets = "net/minecraft/command/arguments/ArgumentTypes$Entry")
 public abstract class ArgumentTypes_EntryMixin<T extends CommandTreeBuilder<T>, S extends ArgumentType<?>>
-        implements ArgumentTypes_EntryBridge<T>, ArgumentTypes_EntryAccessor<S> {
+        implements ArgumentTypes_EntryBridge<S, T>, ArgumentTypes_EntryAccessor<S> {
 
     private Function<ClientCompletionKey<T>, T> impl$supplier;
 

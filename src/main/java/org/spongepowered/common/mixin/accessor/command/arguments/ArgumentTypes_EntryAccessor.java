@@ -26,6 +26,7 @@ package org.spongepowered.common.mixin.accessor.command.arguments;
 
 import com.mojang.brigadier.arguments.ArgumentType;
 import net.minecraft.command.arguments.IArgumentSerializer;
+import net.minecraft.util.ResourceLocation;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
@@ -34,5 +35,8 @@ public interface ArgumentTypes_EntryAccessor<T extends ArgumentType<?>> {
 
     @Accessor("serializer")
     IArgumentSerializer<T> accessor$getSerializer();
+
+    @Accessor("id")
+    ResourceLocation accessor$getResourceLocation();
 
 }

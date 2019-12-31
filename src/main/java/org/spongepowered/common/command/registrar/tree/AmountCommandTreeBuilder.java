@@ -24,6 +24,7 @@
  */
 package org.spongepowered.common.command.registrar.tree;
 
+import net.minecraft.network.PacketBuffer;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spongepowered.api.command.registrar.tree.ClientCompletionKey;
 import org.spongepowered.api.command.registrar.tree.CommandTreeBuilder;
@@ -46,4 +47,17 @@ public class AmountCommandTreeBuilder<T extends CommandTreeBuilder<T>>
         return this.addProperty(AMOUNT_KEY, AMOUNT_SINGLE);
     }
 
+    public boolean isSingleTarget() {
+        return AMOUNT_SINGLE.equals(this.getProperty(AMOUNT_KEY));
+    }
+
+    @Override
+    public void applyProperties(PacketBuffer packetBuffer) {
+        // If allowing multiple, it's 1, else 0
+        if (isSingleTarget()) {
+            packetBuffer.writeByte(0);
+        } else {
+            packetBuffer.writeByte(1);
+        }
+    }
 }

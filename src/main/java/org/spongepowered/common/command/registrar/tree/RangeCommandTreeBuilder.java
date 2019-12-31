@@ -24,9 +24,15 @@
  */
 package org.spongepowered.common.command.registrar.tree;
 
+import com.google.common.base.Preconditions;
+import net.minecraft.command.arguments.serializers.BrigadierSerializers;
+import net.minecraft.network.PacketBuffer;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spongepowered.api.command.registrar.tree.ClientCompletionKey;
 import org.spongepowered.api.command.registrar.tree.CommandTreeBuilder;
+
+import java.util.Optional;
+import java.util.function.BiConsumer;
 
 public class RangeCommandTreeBuilder<T extends Number>
         extends ArgumentCommandTreeBuilder<CommandTreeBuilder.Range<T>> implements CommandTreeBuilder.Range<T> {
@@ -34,26 +40,50 @@ public class RangeCommandTreeBuilder<T extends Number>
     private static final String MIN_PROPERTY = "min";
     private static final String MAX_PROPERTY = "max";
 
-    public RangeCommandTreeBuilder(ClientCompletionKey<Range<T>> parameterType) {
+    private final BiConsumer<PacketBuffer, RangeCommandTreeBuilder<T>> packetWriter;
+    @Nullable private T min;
+    @Nullable private T max;
+
+    public RangeCommandTreeBuilder(ClientCompletionKey<Range<T>> parameterType, BiConsumer<PacketBuffer, RangeCommandTreeBuilder<T>> packetWriter) {
         super(parameterType);
+        this.packetWriter = packetWriter;
     }
 
     @Override
     public Range<T> min(@Nullable T min) {
         if (min == null) {
-            return this.removeProperty(MIN_PROPERTY);
+            this.removeProperty(MIN_PROPERTY);
         } else {
-            return this.addProperty(MIN_PROPERTY, min);
+            // Icky, I know
+            Preconditions.checkArgument((this.max != null && this.max.doubleValue() < min.doubleValue()), "Min must be smaller than max!");
+            this.addProperty(MIN_PROPERTY, min);
         }
+        this.min = min;
+        return getThis();
     }
 
     @Override
     public Range<T> max(@Nullable T max) {
         if (max == null) {
-            return this.removeProperty(MAX_PROPERTY);
+            this.removeProperty(MAX_PROPERTY);
         } else {
-            return this.addProperty(MAX_PROPERTY, max);
+            Preconditions.checkArgument((this.min != null && this.min.doubleValue() < max.doubleValue()), "Max must be smaller than min!");
+            this.addProperty(MAX_PROPERTY, max);
         }
+        this.max = max;
+        return getThis();
     }
 
+    @Override
+    public void applyProperties(PacketBuffer packetBuffer) {
+        this.packetWriter.accept(packetBuffer, this);
+    }
+
+    public Optional<T> getMin() {
+        return Optional.ofNullable(this.min);
+    }
+
+    public Optional<T> getMax() {
+        return Optional.ofNullable(this.max);
+    }
 }

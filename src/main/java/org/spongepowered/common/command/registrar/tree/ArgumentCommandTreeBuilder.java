@@ -25,16 +25,12 @@
 package org.spongepowered.common.command.registrar.tree;
 
 import com.google.gson.JsonObject;
-import com.mojang.brigadier.arguments.ArgumentType;
-import com.mojang.brigadier.builder.RequiredArgumentBuilder;
-import net.minecraft.command.ISuggestionProvider;
+import net.minecraft.network.PacketBuffer;
 import org.spongepowered.api.command.registrar.tree.ClientCompletionKey;
 import org.spongepowered.api.command.registrar.tree.CommandTreeBuilder;
-import org.spongepowered.common.bridge.command.argument.ArgumentTypes_EntryBridge;
-import org.spongepowered.common.mixin.accessor.command.arguments.ArgumentTypes_EntryAccessor;
 import org.spongepowered.common.util.Constants;
 
-public class ArgumentCommandTreeBuilder<T extends CommandTreeBuilder<T>> extends AbstractCommandTreeBuilder<T, RequiredArgumentBuilder<ISuggestionProvider, ?>> {
+public class ArgumentCommandTreeBuilder<T extends CommandTreeBuilder<T>> extends AbstractCommandTreeBuilder<T> {
 
     private final ClientCompletionKey<T> parameterType;
 
@@ -43,20 +39,25 @@ public class ArgumentCommandTreeBuilder<T extends CommandTreeBuilder<T>> extends
     }
 
     @Override
-    protected RequiredArgumentBuilder<ISuggestionProvider, ?> createSpecificCommandNode(String name) {
-        RequiredArgumentBuilder<ISuggestionProvider, ?> builder = RequiredArgumentBuilder.argument(name,
-                (ArgumentTypes_EntryBridge<?>) this.parameterType)
-        return null;
-    }
-
-    private <S extends ArgumentType<?>> RequiredArgumentBuilder<ISuggestionProvider, RequiredArgumentBuilder<ISuggestionProvider, S>> create(String name) {
-        return RequiredArgumentBuilder.argument(name, ((ArgumentTypes_EntryAccessor<S>) this.parameterType).accessor$getSerializer())
-    }
-
-    @Override
     void setType(JsonObject object) {
         object.addProperty(Constants.Command.TYPE, Constants.Command.ARGUMENT);
         object.addProperty(Constants.Command.PARSER, this.parameterType.getKey().getFormatted());
+    }
+
+    @Override
+    public byte getNodeMask() {
+        return (byte) (Constants.Command.ARGUMENT_NODE_BIT | this.customSuggestionsMask());
+    }
+
+    private byte customSuggestionsMask() {
+        return this.isCustomSuggestions() ? Constants.Command.CUSTOM_SUGGESTIONS_BIT : 0;
+    }
+
+    public ClientCompletionKey<T> getParser() {
+        return this.parameterType;
+    }
+
+    public void applyProperties(PacketBuffer packetBuffer) {
     }
 
 }

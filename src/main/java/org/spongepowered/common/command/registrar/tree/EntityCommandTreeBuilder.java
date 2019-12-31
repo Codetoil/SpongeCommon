@@ -24,6 +24,8 @@
  */
 package org.spongepowered.common.command.registrar.tree;
 
+import net.minecraft.command.arguments.EntityArgument;
+import net.minecraft.network.PacketBuffer;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spongepowered.api.command.registrar.tree.ClientCompletionKey;
 import org.spongepowered.api.command.registrar.tree.CommandTreeBuilder;
@@ -31,6 +33,7 @@ import org.spongepowered.api.command.registrar.tree.CommandTreeBuilder;
 public class EntityCommandTreeBuilder
         extends AmountCommandTreeBuilder<CommandTreeBuilder.EntitySelection> implements CommandTreeBuilder.EntitySelection {
 
+    private static final EntityArgument.Serializer ENTITY_ARGUMENT_SERIALIZER = new EntityArgument.Serializer();
     private static final String TYPE_KEY = "type";
 
     private static final String TYPE_ENTITIES = "entities";
@@ -44,6 +47,22 @@ public class EntityCommandTreeBuilder
     @Override
     public EntitySelection playersOnly() {
         return this.addProperty(TYPE_KEY, TYPE_PLAYER_ONLY);
+    }
+
+    public boolean isPlayersOnly() {
+        return TYPE_PLAYER_ONLY.equals(this.getProperty(TYPE_KEY));
+    }
+
+    @Override
+    public void applyProperties(PacketBuffer packetBuffer) {
+        EntityArgument argument;
+        if (isPlayersOnly()) {
+            argument = isSingleTarget() ? EntityArgument.player() : EntityArgument.players();
+        } else {
+            argument = isSingleTarget() ? EntityArgument.entity() : EntityArgument.entities();
+        }
+
+        ENTITY_ARGUMENT_SERIALIZER.write(argument, packetBuffer);
     }
 
 }

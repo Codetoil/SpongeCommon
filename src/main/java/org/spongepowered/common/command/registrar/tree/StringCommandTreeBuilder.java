@@ -24,15 +24,20 @@
  */
 package org.spongepowered.common.command.registrar.tree;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import net.minecraft.command.arguments.serializers.StringArgumentSerializer;
+import net.minecraft.network.PacketBuffer;
 import org.spongepowered.api.command.registrar.tree.ClientCompletionKey;
 import org.spongepowered.api.command.registrar.tree.CommandTreeBuilder;
 
 import java.util.Objects;
+import java.util.function.BiConsumer;
 
 public class StringCommandTreeBuilder extends ArgumentCommandTreeBuilder<CommandTreeBuilder.StringParser> implements CommandTreeBuilder.StringParser {
 
+    private static final StringArgumentSerializer STRING_ARGUMENT_SERIALIZER = new StringArgumentSerializer();
     private static final String TYPE_KEY = "type";
+    private Types type = Types.WORD;
 
     public StringCommandTreeBuilder(ClientCompletionKey<StringParser> parameterType) {
         super(parameterType);
@@ -43,6 +48,30 @@ public class StringCommandTreeBuilder extends ArgumentCommandTreeBuilder<Command
     public StringParser type(Types type) {
         Objects.requireNonNull(type);
         return this.addProperty(TYPE_KEY, type.name().toLowerCase());
+    }
+
+    public Types getType() {
+        return this.type;
+    }
+
+    @Override
+    public void applyProperties(PacketBuffer packetBuffer) {
+        StringArgumentType type;
+        switch (this.type) {
+            case WORD:
+                type = StringArgumentType.word();
+                break;
+            case PHRASE:
+                type = StringArgumentType.string();
+                break;
+            case GREEDY:
+                type = StringArgumentType.greedyString();
+                break;
+            default:
+                throw new IllegalStateException("Invalid type for string serializer");
+        }
+
+        STRING_ARGUMENT_SERIALIZER.write(type, packetBuffer);
     }
 
 }

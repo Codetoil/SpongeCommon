@@ -1306,6 +1306,13 @@ public final class Constants {
         public static final String PROPERTIES = "properties";
         public static final String EXECUTABLE = "executable";
         public static final String REDIRECT = "redirect";
+
+        public static final byte ROOT_NODE_BIT          =  0; // 000000
+        public static final byte LITERAL_NODE_BIT       =  1; // 000001
+        public static final byte ARGUMENT_NODE_BIT      =  2; // 000010
+        public static final byte EXECUTABLE_BIT         =  4; // 000100
+        public static final byte REDIRECT_BIT           =  8; // 001000
+        public static final byte CUSTOM_SUGGESTIONS_BIT = 16; // 010000
     }
 
     public static final class DirectionFunctions {

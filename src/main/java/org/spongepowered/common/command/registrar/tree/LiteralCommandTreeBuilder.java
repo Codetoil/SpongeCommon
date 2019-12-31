@@ -26,12 +26,18 @@ package org.spongepowered.common.command.registrar.tree;
 
 import com.google.gson.JsonObject;
 import org.spongepowered.api.command.registrar.tree.CommandTreeBuilder;
+import org.spongepowered.common.util.Constants;
 
 public class LiteralCommandTreeBuilder extends AbstractCommandTreeBuilder<CommandTreeBuilder.Basic> implements CommandTreeBuilder.Basic {
 
     @Override
     void setType(JsonObject object) {
         object.addProperty("type", "literal");
+    }
+
+    @Override
+    public byte getNodeMask() {
+        return Constants.Command.LITERAL_NODE_BIT;
     }
 
 }

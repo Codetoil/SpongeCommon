@@ -29,15 +29,21 @@ import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
+import com.mojang.brigadier.exceptions.BuiltInExceptionProvider;
+import com.mojang.brigadier.exceptions.BuiltInExceptions;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
+import com.mojang.brigadier.tree.RootCommandNode;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.command.ICommandSource;
 import net.minecraft.command.ISuggestionProvider;
 import net.minecraft.command.arguments.SuggestionProviders;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.network.play.server.SCommandListPacket;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandCause;
+import org.spongepowered.api.command.exception.CommandException;
 import org.spongepowered.api.command.registrar.CommandRegistrar;
 import org.spongepowered.api.event.CauseStackManager;
 import org.spongepowered.asm.mixin.Mixin;
@@ -50,6 +56,7 @@ import org.spongepowered.common.command.manager.SpongeCommandManager;
 import org.spongepowered.common.command.registrar.BrigadierBackedCommandRegistrar;
 import org.spongepowered.common.command.registrar.VanillaCommandRegistrar;
 import org.spongepowered.common.command.registrar.tree.RootCommandTreeBuilder;
+import org.spongepowered.common.text.SpongeTexts;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -75,14 +82,15 @@ public abstract class CommandsMixin {
     // We redirect to our own command manager, which might return to the dispatcher.
     @Redirect(method = "handleCommand", at = @At(value = "INVOKE",
             target = "Lcom/mojang/brigadier/CommandDispatcher;execute(Lcom/mojang/brigadier/StringReader;Ljava/lang/Object;)I"))
-    private int impl$redirectExecuteCall(CommandDispatcher<?> commandDispatcher, StringReader input, Object source) {
-        // We know that the object type will be ICommandSource
-        ICommandSource commandSource = (ICommandSource) source;
-        try (CauseStackManager.StackFrame frame = Sponge.getCauseStackManager().pushCauseFrame()) {
-            frame.pushCause(commandSource);
-            // TODO: Handle command
-            return 0;
-        }
+    private int impl$redirectExecuteCall(CommandDispatcher<?> commandDispatcher, StringReader input, Object sourceSentToDispatcher,
+            CommandSource source, String commandToSend) throws net.minecraft.command.CommandException {
+        return SpongeImpl.getCommandManager().process(source, commandToSend);
+    }
+
+    @Redirect(method = "send", at = @At(value = "NEW", target = "net/minecraft/network/play/server/SCommandListPacket"))
+    private SCommandListPacket impl$createPacket(Commands commands, RootCommandNode<?> commandNode, ServerPlayerEntity playerEntity) {
+        SCommandListPacket packet = new SCommandListPacket();
+        return packet;
     }
 
     @Redirect(method = "send", at =
