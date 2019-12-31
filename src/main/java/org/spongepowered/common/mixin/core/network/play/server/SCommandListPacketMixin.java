@@ -3,9 +3,10 @@ package org.spongepowered.common.mixin.core.network.play.server;
 import net.minecraft.command.arguments.SuggestionProviders;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.network.play.server.SCommandListPacket;
+import net.minecraft.util.ResourceLocation;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.spongepowered.api.command.registrar.tree.ClientCompletionKey;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.common.bridge.command.argument.ArgumentTypes_EntryBridge;
 import org.spongepowered.common.bridge.network.play.server.SCommandListPacketBridge;
 import org.spongepowered.common.command.registrar.tree.AbstractCommandTreeBuilder;
 import org.spongepowered.common.command.registrar.tree.ArgumentCommandTreeBuilder;
@@ -50,9 +51,9 @@ public abstract class SCommandListPacketMixin implements SCommandListPacketBridg
             buf.writeString(key);
             if (node instanceof ArgumentCommandTreeBuilder) {
                 ArgumentCommandTreeBuilder<?> treeBuilder = (ArgumentCommandTreeBuilder<?>) node;
-                ArgumentTypes_EntryBridge<?, ?> entry = (ArgumentTypes_EntryBridge<?, ?>) treeBuilder.getParser();
-                buf.writeResourceLocation(entry.accessor$getResourceLocation());
-                ((ArgumentCommandTreeBuilder<?>) node).applyProperties(buf);
+                ClientCompletionKey<?> clientCompletionKey = treeBuilder.getClientCompletionKey();
+                buf.writeResourceLocation((ResourceLocation) (Object) clientCompletionKey.getKey());
+                treeBuilder.applyProperties(buf);
                 if (treeBuilder.isCustomSuggestions()) {
                     buf.writeResourceLocation(SuggestionProviders.getId(SuggestionProviders.ASK_SERVER));
                 }

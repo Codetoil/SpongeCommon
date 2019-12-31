@@ -53,7 +53,7 @@ public class ArgumentCommandTreeBuilder<T extends CommandTreeBuilder<T>> extends
         return this.isCustomSuggestions() ? Constants.Command.CUSTOM_SUGGESTIONS_BIT : 0;
     }
 
-    public ClientCompletionKey<T> getParser() {
+    public ClientCompletionKey<T> getClientCompletionKey() {
         return this.parameterType;
     }
 
