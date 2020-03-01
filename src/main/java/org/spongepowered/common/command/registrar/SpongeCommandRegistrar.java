@@ -60,7 +60,7 @@ public abstract class SpongeCommandRegistrar<T extends Command> implements Briga
     private final Map<String, T> commandMap = new TreeMap<>();
     private final CatalogKey catalogKey;
 
-    SpongeCommandRegistrar(CatalogKey catalogKey) {
+    SpongeCommandRegistrar(final CatalogKey catalogKey) {
         this.catalogKey = catalogKey;
     }
 
@@ -76,7 +76,7 @@ public abstract class SpongeCommandRegistrar<T extends Command> implements Briga
      * @return The mapping
      * @throws CommandFailedRegistrationException If no mapping could be created.
      */
-    public CommandMapping register(PluginContainer container, T command, String primaryAlias, String[] secondaryAliases)
+    public CommandMapping register(final PluginContainer container, final T command, final String primaryAlias, final String[] secondaryAliases)
             throws CommandFailedRegistrationException {
         if (this.dispatcher.findNode(Collections.singletonList(primaryAlias.toLowerCase())) != null) {
             // we have a problem
@@ -94,7 +94,7 @@ public abstract class SpongeCommandRegistrar<T extends Command> implements Briga
     }
 
     @Override
-    public CommandResult process(CommandCause cause, String command, String arguments) throws CommandException {
+    public CommandResult process(final CommandCause cause, final String command, final String arguments) throws CommandException {
         Preconditions.checkState(cause instanceof SpongeCommandCause, "Must be a SpongeCommandCause");
         try {
             return CommandResult.builder().setResult(this.dispatcher.execute(createCommandString(command, arguments), (SpongeCommandCause) cause)).build();
@@ -105,7 +105,7 @@ public abstract class SpongeCommandRegistrar<T extends Command> implements Briga
     }
 
     @Override
-    public List<String> suggestions(CommandCause cause, String command, String arguments) {
+    public List<String> suggestions(final CommandCause cause, final String command, final String arguments) {
         Preconditions.checkState(cause instanceof SpongeCommandCause, "Must be a SpongeCommandCause");
         try {
             return this.dispatcher.getCompletionSuggestions(
@@ -117,7 +117,7 @@ public abstract class SpongeCommandRegistrar<T extends Command> implements Briga
     }
 
     @Override
-    public Optional<Text> help(CommandCause cause, String command) {
+    public Optional<Text> help(final CommandCause cause, final String command) {
         T commandEntry = this.commandMap.get(command.toLowerCase());
         if (commandEntry == null) {
             throw new IllegalArgumentException(command + " is not a valid a valid command!");
@@ -127,7 +127,7 @@ public abstract class SpongeCommandRegistrar<T extends Command> implements Briga
     }
 
     @Override
-    public void unregister(CommandMapping mapping) {
+    public void unregister(final CommandMapping mapping) {
         if (Sponge.getCommandManager().isRegistered(mapping)) {
             this.commandMap.remove(mapping.getPrimaryAlias());
             ((RootCommandNodeBridge<CommandCause>) this.dispatcher).bridge$removeNode(
@@ -145,7 +145,7 @@ public abstract class SpongeCommandRegistrar<T extends Command> implements Briga
         return this.commandMap;
     }
 
-    private String createCommandString(String command, String argument) {
+    private String createCommandString(final String command, final String argument) {
         if (argument.isEmpty()) {
             return command;
         }
@@ -153,7 +153,7 @@ public abstract class SpongeCommandRegistrar<T extends Command> implements Briga
         return command + " " + argument;
     }
 
-    abstract LiteralArgumentBuilder<CommandCause> createNode(String primaryAlias, T command);
+    abstract LiteralArgumentBuilder<CommandCause> createNode(final String primaryAlias, final T command);
 
     @Override
     public CommandNode<CommandCause> getCommandNode() {

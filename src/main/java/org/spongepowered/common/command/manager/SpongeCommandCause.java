@@ -41,10 +41,20 @@ import org.spongepowered.api.command.CommandCause;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.scoreboard.Team;
+import org.spongepowered.api.service.context.Context;
+import org.spongepowered.api.service.permission.SubjectCollection;
+import org.spongepowered.api.service.permission.SubjectData;
+import org.spongepowered.api.service.permission.SubjectReference;
+import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.channel.MessageChannel;
+import org.spongepowered.api.util.Tristate;
 import org.spongepowered.common.command.CommandHelper;
 import org.spongepowered.common.text.SpongeTexts;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -53,6 +63,7 @@ public class SpongeCommandCause implements CommandCause, ICommandSource, ISugges
 
     private final Cause cause;
     private final ICommandSource wrappedSource;
+    @Nullable private MessageChannel targetMessageChannel;
 
     public SpongeCommandCause(Cause cause) {
         this.cause = cause;
@@ -70,7 +81,11 @@ public class SpongeCommandCause implements CommandCause, ICommandSource, ISugges
 
     @Override
     public void sendMessage(ITextComponent component) {
-        CommandHelper.getTargetMessageChannel(this.cause).send(SpongeTexts.toText(component));
+        if (this.targetMessageChannel != null) {
+            this.targetMessageChannel.send(SpongeTexts.toText(component));
+        } else {
+            CommandHelper.getTargetMessageChannel(this.cause).send(SpongeTexts.toText(component));
+        }
     }
 
     @Override
@@ -125,4 +140,70 @@ public class SpongeCommandCause implements CommandCause, ICommandSource, ISugges
         }
         return p_197034_1_ <= 0;
     }
+
+    @Override
+    public SubjectCollection getContainingCollection() {
+        return getSubject().getContainingCollection();
+    }
+
+    @Override
+    public SubjectReference asSubjectReference() {
+        return getSubject().asSubjectReference();
+    }
+
+    @Override
+    public boolean isSubjectDataPersisted() {
+        return getSubject().isSubjectDataPersisted();
+    }
+
+    @Override
+    public SubjectData getSubjectData() {
+        return getSubject().getSubjectData();
+    }
+
+    @Override
+    public SubjectData getTransientSubjectData() {
+        return getSubject().getTransientSubjectData();
+    }
+
+    @Override
+    public Tristate getPermissionValue(Set<Context> contexts, String permission) {
+        return getPermissionValue(contexts, permission);
+    }
+
+    @Override
+    public boolean isChildOf(Set<Context> contexts, SubjectReference parent) {
+        return getSubject().isChildOf(contexts, parent);
+    }
+
+    @Override
+    public List<SubjectReference> getParents(Set<Context> contexts) {
+        return getSubject().getParents(contexts);
+    }
+
+    @Override
+    public Optional<String> getOption(Set<Context> contexts, String key) {
+        return getSubject().getOption(contexts, key);
+    }
+
+    @Override
+    public String getIdentifier() {
+        return getSubject().getIdentifier();
+    }
+
+    @Override
+    public Set<Context> getActiveContexts() {
+        return getSubject().getActiveContexts();
+    }
+
+    @Override
+    public void sendMessage(Text message) {
+        getMessageChannel().send(message);
+    }
+
+    @Override
+    public void setMessageChannel(MessageChannel channel) {
+        this.targetMessageChannel = channel;
+    }
+
 }

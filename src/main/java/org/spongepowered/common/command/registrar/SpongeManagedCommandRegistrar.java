@@ -40,17 +40,17 @@ public class SpongeManagedCommandRegistrar extends SpongeCommandRegistrar<Comman
     public static final CatalogKey CATALOG_KEY = CatalogKey.builder().namespace(SpongeImpl.getSpongePlugin()).value("managed").build();
     public static final SpongeManagedCommandRegistrar INSTANCE = new SpongeManagedCommandRegistrar(CATALOG_KEY);
 
-    private SpongeManagedCommandRegistrar(CatalogKey catalogKey) {
+    private SpongeManagedCommandRegistrar(final CatalogKey catalogKey) {
         super(catalogKey);
     }
 
     @Override
-    LiteralArgumentBuilder<CommandCause> createNode(String primaryAlias, Command.Parameterized command) {
+    LiteralArgumentBuilder<CommandCause> createNode(final String primaryAlias, final Command.Parameterized command) {
         return null;
     }
 
     @Override
-    public void completeCommandTree(CommandCause commandCause, CommandTreeBuilder.Basic builder) {
+    public void completeCommandTree(final CommandCause commandCause, final CommandTreeBuilder.Basic builder) {
         // We're going to cheat at bit. We will let Minecraft serialise the nodes, then we'll use the
         // Json that is provided to create the command trees.
         // We don't really care for the helper methods, so all nodes will be "Basic". We don't allow

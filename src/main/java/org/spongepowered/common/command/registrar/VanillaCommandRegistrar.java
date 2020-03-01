@@ -64,7 +64,7 @@ public class VanillaCommandRegistrar extends CommandDispatcher<ICommandSource> i
     // For mods and others that use this. We get the plugin container from the CauseStack
     // TODO: Make sure this is valid. For Forge, I suspect we'll have done this in a context of some sort.
     @Override
-    public LiteralCommandNode<ICommandSource> register(LiteralArgumentBuilder<ICommandSource> command) {
+    public LiteralCommandNode<ICommandSource> register(final LiteralArgumentBuilder<ICommandSource> command) {
         // Get the plugin container
         PluginContainer container = Sponge.getCauseStackManager().getCurrentCause().first(PluginContainer.class)
                 .orElseThrow(() -> new IllegalStateException("Cannot register command without knowing its origin."));
@@ -86,7 +86,7 @@ public class VanillaCommandRegistrar extends CommandDispatcher<ICommandSource> i
     }
 
     @Override
-    public CommandResult process(CommandCause cause, String command, String arguments) throws CommandException {
+    public CommandResult process(final CommandCause cause, final String command, final String arguments) throws CommandException {
         ICommandSource source = CommandHelper.getCommandSource(cause.getCause());
         try {
             int result = execute(command + " " + arguments, source);
@@ -97,7 +97,7 @@ public class VanillaCommandRegistrar extends CommandDispatcher<ICommandSource> i
     }
 
     @Override
-    public List<String> suggestions(CommandCause cause, String command, String arguments) {
+    public List<String> suggestions(final CommandCause cause, final String command, final String arguments) {
         ICommandSource source = CommandHelper.getCommandSource(cause.getCause());
         CompletableFuture<Suggestions> suggestionsCompletableFuture = getCompletionSuggestions(parse(command + " " + arguments, source));
         // TODO: Fix so that we keep suggestions in the Mojang format
@@ -105,7 +105,7 @@ public class VanillaCommandRegistrar extends CommandDispatcher<ICommandSource> i
     }
 
     @Override
-    public Optional<Text> help(CommandCause cause, String command) {
+    public Optional<Text> help(final CommandCause cause, final String command) {
         CommandNode<ICommandSource> node = this.findNode(Collections.singletonList(command));
         if (node != null) {
             return Optional.of(Text.of(getSmartUsage(node, CommandHelper.getCommandSource(cause.getCause()))));
@@ -116,14 +116,14 @@ public class VanillaCommandRegistrar extends CommandDispatcher<ICommandSource> i
 
     @Override
     @SuppressWarnings("unchecked")
-    public void unregister(CommandMapping mapping) {
+    public void unregister(final CommandMapping mapping) {
         if (!Sponge.getCommandManager().isRegistered(mapping)) {
             ((RootCommandNodeBridge<ICommandSource>) getRoot()).bridge$removeNode(getRoot().getChild(mapping.getPrimaryAlias()));
         }
     }
 
     @Override
-    public void completeCommandTree(CommandCause commandCause, CommandTreeBuilder.Basic builder) {
+    public void completeCommandTree(final CommandCause commandCause, final CommandTreeBuilder.Basic builder) {
         CommandTreeHelper.fromJson(builder, ArgumentTypes.serialize(this, this.getRoot()));
     }
 

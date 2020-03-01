@@ -60,7 +60,7 @@ public class SpongeRawCommandRegistrar extends SpongeCommandRegistrar<Command> {
     }
 
     @Override
-    LiteralArgumentBuilder<CommandCause> createNode(String primaryAlias, Command command) {
+    LiteralArgumentBuilder<CommandCause> createNode(final String primaryAlias, final Command command) {
         final Executor executor = new Executor(command);
         return LiteralArgumentBuilder.<CommandCause>literal(primaryAlias)
                 .requires(command::canExecute)
@@ -74,7 +74,7 @@ public class SpongeRawCommandRegistrar extends SpongeCommandRegistrar<Command> {
     }
 
     @Override
-    public void completeCommandTree(CommandCause commandCause, CommandTreeBuilder.Basic builder) {
+    public void completeCommandTree(final CommandCause commandCause, final CommandTreeBuilder.Basic builder) {
         for (final Map.Entry<String, Command> command : this.getCommandMap().entrySet()) {
             if (command.getValue().canExecute(commandCause)) {
                 builder.child(command.getKey(), emptyCommandTreeBuilder ->
@@ -98,7 +98,7 @@ public class SpongeRawCommandRegistrar extends SpongeCommandRegistrar<Command> {
         }
 
         @Override
-        public int run(CommandContext<CommandCause> context) throws CommandSyntaxException {
+        public int run(final CommandContext<CommandCause> context) throws CommandSyntaxException {
             String argument;
             try {
                 argument = context.getArgument(PARAMETER_NAME, String.class);
@@ -119,19 +119,19 @@ public class SpongeRawCommandRegistrar extends SpongeCommandRegistrar<Command> {
 
         private final Command command;
 
-        private RawString(Command command) {
+        private RawString(final Command command) {
             this.command = command;
         }
 
         @Override
-        public String parse(StringReader reader) {
+        public String parse(final StringReader reader) {
             return reader.getRemaining();
         }
 
         @Override
-        public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
-            String[] input = context.getInput().split(" ", 2);
-            String arg;
+        public <S> CompletableFuture<Suggestions> listSuggestions(final CommandContext<S> context, final SuggestionsBuilder builder) {
+            final String[] input = context.getInput().split(" ", 2);
+            final String arg;
             SuggestionsBuilder offsetBuilder = builder;
             if (input.length == 2) {
                 arg = input[1];

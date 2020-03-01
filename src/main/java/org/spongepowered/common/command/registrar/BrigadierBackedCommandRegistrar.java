@@ -47,7 +47,7 @@ public interface BrigadierBackedCommandRegistrar extends CommandRegistrar {
     /**
      * Gets the backing Brigadier {@link CommandNode} for this registrar. You
      * <strong>do not</strong> need to filter out commands that users should
-     * not be able to acess.
+     * not be able to access.
      *
      * @return The {@link CommandNode}.
      */
