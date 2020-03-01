@@ -42,6 +42,7 @@ import net.minecraft.command.arguments.serializers.LongArgumentSerializer;
 import net.minecraft.command.arguments.serializers.StringArgumentSerializer;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
+import org.spongepowered.api.CatalogKey;
 import org.spongepowered.api.command.registrar.tree.ClientCompletionKey;
 import org.spongepowered.api.command.registrar.tree.CommandTreeBuilder;
 import org.spongepowered.asm.mixin.Mixin;
@@ -50,11 +51,14 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Coerce;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.Slice;
+import org.spongepowered.common.SpongeImpl;
 import org.spongepowered.common.bridge.command.argument.ArgumentTypes_EntryBridge;
+import org.spongepowered.common.command.brigadier.argument.SpongeArgumentTypeAdapter;
 import org.spongepowered.common.command.registrar.tree.EmptyCommandTreeBuilder;
 import org.spongepowered.common.command.registrar.tree.EntityCommandTreeBuilder;
 import org.spongepowered.common.command.registrar.tree.RangeCommandTreeBuilder;
 import org.spongepowered.common.command.registrar.tree.StringCommandTreeBuilder;
+import org.spongepowered.common.mixin.accessor.command.arguments.ArgumentSerializerAccessor;
 import org.spongepowered.common.util.Constants;
 
 import java.util.Map;
@@ -73,34 +77,47 @@ public abstract class ArgumentTypesMixin {
                     to = @At("TAIL")),
             at = @At(value = "INVOKE", target = "Ljava/util/Map;put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"))
     private static <T extends ArgumentType<?>> Object impl$registerClientCompletionKey(
-            Map<ResourceLocation, Object> map, @Coerce Object key, @Coerce Object value, String namespace, Class<?> argumentType,
+            Map<ResourceLocation, Object> idTypeMap,
+            @Coerce Object resourceLocation,
+            @Coerce Object entry,
+            String namespace,
+            Class<?> argumentType,
             IArgumentSerializer<?> serializer) {
+
         if (serializer instanceof DoubleArgumentSerializer) {
-            impl$addToValue(value,
+            impl$addToValue(entry,
                     (Function<ClientCompletionKey<CommandTreeBuilder.Range<Double>>, CommandTreeBuilder.Range<Double>>)
                             (k -> new RangeCommandTreeBuilder<>(k, impl$doubleSerializer((DoubleArgumentSerializer) serializer))));
         } else if (serializer instanceof FloatArgumentSerializer) {
-            impl$addToValue(value,
+            impl$addToValue(entry,
                     (Function<ClientCompletionKey<CommandTreeBuilder.Range<Float>>, CommandTreeBuilder.Range<Float>>)
                             (k -> new RangeCommandTreeBuilder<>(k, impl$floatSerializer((FloatArgumentSerializer) serializer))));
         } else if (serializer instanceof IntArgumentSerializer) {
-            impl$addToValue(value,
+            impl$addToValue(entry,
                     (Function<ClientCompletionKey<CommandTreeBuilder.Range<Integer>>, CommandTreeBuilder.Range<Integer>>)
                             (k -> new RangeCommandTreeBuilder<>(k, impl$intSerializer((IntArgumentSerializer) serializer))));
         } else if (serializer instanceof LongArgumentSerializer) {
-            impl$addToValue(value,
+            impl$addToValue(entry,
                     (Function<ClientCompletionKey<CommandTreeBuilder.Range<Long>>, CommandTreeBuilder.Range<Long>>)
                             (k -> new RangeCommandTreeBuilder<>(k, impl$longSerializer((LongArgumentSerializer) serializer))));
         } else if (serializer instanceof StringArgumentSerializer) {
-            impl$addToValue(value, StringCommandTreeBuilder::new);
+            impl$addToValue(entry, StringCommandTreeBuilder::new);
         } else if (serializer instanceof EntityArgument) {
-            impl$addToValue(value, EntityCommandTreeBuilder::new);
+            impl$addToValue(entry, EntityCommandTreeBuilder::new);
         } else {
-            impl$addToValue(value, EmptyCommandTreeBuilder::new);
+            impl$addToValue(entry, EmptyCommandTreeBuilder::new);
+        }
+
+        // Register the argument type so that it can be consumed by users.
+        // There are some non-ArgumentSerializer serializers, we can ignore those.
+        if (serializer instanceof ArgumentSerializerAccessor<?>) {
+            SpongeImpl.getRegistry().getCatalogRegistry().registerCatalog(new SpongeArgumentTypeAdapter<>(
+                    (CatalogKey) resourceLocation,
+                    ((ArgumentSerializerAccessor<?>) serializer).accessor$getFactory().get()));
         }
 
         // Abusing generics here...
-       return map.put((ResourceLocation) key, value);
+       return idTypeMap.put((ResourceLocation) resourceLocation, entry);
     }
 
     private static <T extends CommandTreeBuilder<T>> void impl$addToValue(Object value, Function<ClientCompletionKey<T>, T> key) {
@@ -143,16 +160,4 @@ public abstract class ArgumentTypesMixin {
         };
     }
 
-    private static BiConsumer<PacketBuffer, EntityCommandTreeBuilder> impl$entitySerializer(final EntityArgument.Serializer serializer) {
-        return (buffer, commandTreeBuilder) -> {
-            EntityArgument argument;
-            if (commandTreeBuilder.isPlayersOnly()) {
-                argument = commandTreeBuilder.isSingleTarget() ? EntityArgument.player() : EntityArgument.players();
-            } else {
-                argument = commandTreeBuilder.isSingleTarget() ? EntityArgument.entity() : EntityArgument.entities();
-            }
-
-            serializer.write(argument, buffer);
-        };
-    }
 }

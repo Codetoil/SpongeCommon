@@ -56,10 +56,6 @@ public class SpongeParameterValueBuilder<T> implements Parameter.Value.Builder<T
     private boolean consumesAll;
     private boolean isOptional;
 
-    public SpongeParameterValueBuilder(Class<T> clazz) {
-        this(TypeToken.of(clazz));
-    }
-
     public SpongeParameterValueBuilder(TypeToken<T> token) {
         this.typeToken = token;
     }
@@ -166,7 +162,7 @@ public class SpongeParameterValueBuilder<T> implements Parameter.Value.Builder<T
             }
         }
 
-        return new SpongeParameterValue<T>(
+        return new SpongeParameterValue<>(
                 parsersBuilder.build(),
                 completer,
                 this.usage,
